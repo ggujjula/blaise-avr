@@ -1,0 +1,4 @@
+*.swp
+src/lexer.c
+src/parser.c
+build/*
