@@ -17,6 +17,12 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+%{
+#include "token.h"
+
+token yylval = NULL;
+%}
+
 LETTER    [a-zA-Z]
 DIGIT     [0-9]
 
@@ -59,11 +65,11 @@ STR_CHAR .
 
 COMMENT ((\{)|(\(\*))([^}*]|(\*[^)]))*((\})|(\*\)))
 %%
-{COMMENT}           printf("Comment: %s\n", yytext);
-{SPECIAL_SYMBOL}    printf("Special symbol: %s\n", yytext);
-{ID}                printf("ID: %s\n", yytext);
-{SIGNED_NUM}        printf("Signed num: %s\n", yytext);
-{CHAR_STR}          printf("String: %s\n", yytext);
+{COMMENT}           
+{SPECIAL_SYMBOL}    {yylval = inittok(TYPE_SPEC, PLUS, 0, 0.0, NULL); return 1;}
+{ID}                {yylval = inittok(TYPE_ID, PLUS, 0, 0.0, yytext); return 1;}
+{CHAR_STR}          {yylval = inittok(TYPE_STR, PLUS, 0, 0.0, yytext); return 1;}
+{SIGNED_NUM}        {yylval = inittok(TYPE_NUM, PLUS, 0, 0.0, NULL); return 1;}
 %%
 
 int yywrap() {
@@ -71,5 +77,14 @@ int yywrap() {
 }
 
 int main(){
-  yylex();
+  while(yylex() != 0){
+    printf("Token:\n");
+    printf("type: %d\n", yylval->type);
+    printf("specval: %d\n", yylval->specval);
+    printf("intval: %d\n", yylval->intval);
+    printf("realval: %f\n", yylval->realval);
+    printf("strval: %s\n", yylval->strval);
+    printf("next: %p\n", yylval->next);
+    printf("leaf: %p\n", yylval->leaf);
+  }
 }
