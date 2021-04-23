@@ -16,6 +16,7 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+#include "symtab.h"
 
 typedef char toktype;
 
@@ -24,12 +25,14 @@ struct tokenstruct {
   char specval;
   int intval;
   double realval;
-  char * strval;
-  struct tokenstruct * leaf;
-  struct tokenstruct * next;
+  char* strval;
+  symentry entry;
+  symtype type_sym;
+  struct tokenstruct* leaf;
+  struct tokenstruct* next;
 };
 
-typedef struct tokenstruct * token;
+typedef struct tokenstruct* token;
 
 #define TYPE_SPEC   0
 #define TYPE_ID     1
@@ -73,7 +76,7 @@ typedef struct tokenstruct * token;
 //Avoid conflict with stdio FILE
 #define PASFILE     31
 #define FOR         32
-#define FUNCTION    33
+#define FUNC        33
 #define GOTO        34
 #define IF          36
 #define IN          37
@@ -84,8 +87,8 @@ typedef struct tokenstruct * token;
 #define OF          42
 #define OR          43
 #define PACKED      44
-#define PROCEDURE   45
-#define PROGRAM     46
+#define PROC        45
+#define PROG        46
 #define RECORD      47
 #define REPEAT      48
 #define SET         49
@@ -109,7 +112,7 @@ token talloc(){
   return t;
 }
 
-token inittok(toktype type, char specval, int intval, double realval, char * strval){
+token inittok(toktype type, char specval, int intval, double realval, char* strval){
   token t = malloc(sizeof(struct tokenstruct));
   t->type = type;
   t->specval = specval;

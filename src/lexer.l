@@ -18,6 +18,7 @@
 */
 
 %{
+#include <math.h> 
 #include "token.h"
 
 token yylval = NULL;
@@ -26,11 +27,69 @@ token yylval = NULL;
 LETTER    [a-zA-Z]
 DIGIT     [0-9]
 
-WORD_SYMBOL (and)|(array)|(begin)|(case)|(const)|(div)|(do)|(downto)|(else)|(end)|(file)|(for)|(function)|(goto)|(if)|(in)|(label)|(mod)|(nil)|(not)|(of)|(or)|(packed)|(procedure)|(program)|(record)|(repeat)|(set)|(then)|(to)|(type)|(until)|(var)|(while)|(with)
+PLUS_SYM            \+
+MINUS_SYM           \-
+MULT_SYM            \*
+DIVIDE_SYM          \/
+EQ_SYM              =
+LT_SYM              <
+GT_SYM              >
+LBRACKET_SYM        \[
+RBRACKET_SYM        \]
+DOT_SYM             \.
+COMMA_SYM           ,
+COLON_SYM           :
+SEMICOLON_SYM       ;
+POINT_SYM           \^
+LPAREN_SYM          \(
+RPAREN_SYM          \)
+DIAMOND_SYM         (<>)
+LTE_SYM             (<=)
+GTE_SYM             (>=)
+ASSIGN_SYM          (:=)
+DOTDOT_SYM          (\.\.)
+AND_SYM             (and)
+ARRAY_SYM           (array)
+BEGIN_SYM           (begin)
+CASE_SYM            (case)
+CONST_SYM           (const)
+DIV_SYM             (div)
+DO_SYM              (do)
+DOWNTO_SYM          (downto)
+ELSE_SYM            (else)
+END_SYM             (end)
+FILE_SYM            (file)
+FOR_SYM             (for)
+FUNC_SYM            (function)
+GOTO_SYM            (goto)
+IF_SYM              (if)
+IN_SYM              (in)
+LABEL_SYM           (label)
+MOD_SYM             (mod)
+NIL_SYM             (nil)
+NOT_SYM             (not)
+OF_SYM              (of)
+OR_SYM              (or)
+PACKED_SYM          (packed)
+PROC_SYM            (procedure)
+PROG_SYM            (program)
+RECORD_SYM          (record)
+REPEAT_SYM          (repeat)
+SET_SYM             (set)
+THEN_SYM            (then)
+TO_SYM              (to)
+TYPE_SYM            (type)
+UNTIL_SYM           (until)
+VAR_SYM             (var)
+WHILE_SYM           (while)
+WITH_SYM            (with)
 
-SPECIAL_SYMBOL [+\-*/=<>[\].,:;^()]|(<>)|(<=)|(>=)|(:=)|(\.\.)|{WORD_SYMBOL}
+WORD_SYMBOL {AND_SYM}|{ARRAY_SYM}|{BEGIN_SYM}|{CASE_SYM}|{CONST_SYM}|{DIV_SYM}|{DO_SYM}|{DOWNTO_SYM}|{ELSE_SYM}|{END_SYM}|{FILE_SYM}|{FOR_SYM}|{FUNC_SYM}|{GOTO_SYM}|{IF_SYM}|{IN_SYM}|{LABEL_SYM}|{MOD_SYM}|{NIL_SYM}|{NOT_SYM}|{OF_SYM}|{OR_SYM}|{PACKED_SYM}|{PROC_SYM}|{PROG_SYM}|{RECORD_SYM}|{REPEAT_SYM}|{SET_SYM}|{THEN_SYM}|{TO_SYM}|{TYPE_SYM}|{UNTIL_SYM}|{VAR_SYM}|{WHILE_SYM}|{WITH_SYM}
+
+SPECIAL_SYMBOL [{PLUS_SYM}{MINUS_SYM}{MULT_SYM}{DIVIDE_SYM}{EQ_SYM}{LT_SYM}{GT_SYM}{LBRACKET_SYM}{RBRACKET_SYM}{DOT_SYM}{COMMA_SYM}{COLON_SYM}{SEMICOLON_SYM}{POINT_SYM}{LPAREN_SYM}{RPAREN_SYM}]|{DIAMOND_SYM}|{LTE_SYM}|{GTE_SYM}|{ASSIGN_SYM}|{DOTDOT_SYM}|{WORD_SYMBOL}
 
 ID {LETTER}({LETTER}|{DIGIT})*
+
 DIRECTIVE {LETTER}({LETTER}|{DIGIT})*
 
 SIGNED_NUM {SIGNED_INT}|{SIGNED_REAL}.
@@ -65,11 +124,68 @@ STR_CHAR .
 
 COMMENT ((\{)|(\(\*))([^}*]|(\*[^)]))*((\})|(\*\)))
 %%
-{COMMENT}           
-{SPECIAL_SYMBOL}    {yylval = inittok(TYPE_SPEC, PLUS, 0, 0.0, NULL); return 1;}
+{COMMENT}|[\n\r\t]  {printf("Comment or whitespace: %s\n", yytext);}
+{PLUS_SYM}          {yylval = inittok(TYPE_SPEC, PLUS, 0, 0.0, yytext); return 1;}
+{MINUS_SYM}         {yylval = inittok(TYPE_SPEC, MINUS, 0, 0.0, yytext); return 1;}
+{MULT_SYM}          {yylval = inittok(TYPE_SPEC, MULT, 0, 0.0, yytext); return 1;}
+{DIVIDE_SYM}        {yylval = inittok(TYPE_SPEC, DIVIDE, 0, 0.0, yytext); return 1;}
+{EQ_SYM}            {yylval = inittok(TYPE_SPEC, EQ, 0, 0.0, yytext); return 1;}
+{LT_SYM}            {yylval = inittok(TYPE_SPEC, LT, 0, 0.0, yytext); return 1;}
+{GT_SYM}            {yylval = inittok(TYPE_SPEC, GT, 0, 0.0, yytext); return 1;}
+{LBRACKET_SYM}      {yylval = inittok(TYPE_SPEC, LBRACKET, 0, 0.0, yytext); return 1;}
+{RBRACKET_SYM}      {yylval = inittok(TYPE_SPEC, RBRACKET, 0, 0.0, yytext); return 1;}
+{DOT_SYM}           {yylval = inittok(TYPE_SPEC, DOT, 0, 0.0, yytext); return 1;}
+{COMMA_SYM}         {yylval = inittok(TYPE_SPEC, COMMA, 0, 0.0, yytext); return 1;}
+{COLON_SYM}         {yylval = inittok(TYPE_SPEC, COLON, 0, 0.0, yytext); return 1;}
+{SEMICOLON_SYM}     {yylval = inittok(TYPE_SPEC, SEMICOLON, 0, 0.0, yytext); return 1;}
+{POINT_SYM}         {yylval = inittok(TYPE_SPEC, POINT, 0, 0.0, yytext); return 1;}
+{LPAREN_SYM}        {yylval = inittok(TYPE_SPEC, LPAREN, 0, 0.0, yytext); return 1;}
+{RPAREN_SYM}        {yylval = inittok(TYPE_SPEC, RPAREN, 0, 0.0, yytext); return 1;}
+{DIAMOND_SYM}       {yylval = inittok(TYPE_SPEC, DIAMOND, 0, 0.0, yytext); return 1;}
+{LTE_SYM}           {yylval = inittok(TYPE_SPEC, LTE, 0, 0.0, yytext); return 1;}
+{GTE_SYM}           {yylval = inittok(TYPE_SPEC, GTE, 0, 0.0, yytext); return 1;}
+{ASSIGN_SYM}        {yylval = inittok(TYPE_SPEC, ASSIGN, 0, 0.0, yytext); return 1;}
+{DOTDOT_SYM}        {yylval = inittok(TYPE_SPEC, DOTDOT, 0, 0.0, yytext); return 1;}
+{AND_SYM}           {yylval = inittok(TYPE_SPEC, AND, 0, 0.0, yytext); return 1;}
+{ARRAY_SYM}         {yylval = inittok(TYPE_SPEC, ARRAY, 0, 0.0, yytext); return 1;}
+{BEGIN_SYM}         {yylval = inittok(TYPE_SPEC, PASBEGIN, 0, 0.0, yytext); return 1;}
+{CASE_SYM}          {yylval = inittok(TYPE_SPEC, CASE, 0, 0.0, yytext); return 1;}
+{CONST_SYM}         {yylval = inittok(TYPE_SPEC, CONST, 0, 0.0, yytext); return 1;}
+{DIV_SYM}           {yylval = inittok(TYPE_SPEC, DIV, 0, 0.0, yytext); return 1;}
+{DO_SYM}            {yylval = inittok(TYPE_SPEC, DO, 0, 0.0, yytext); return 1;}
+{DOWNTO_SYM}        {yylval = inittok(TYPE_SPEC, DOWNTO, 0, 0.0, yytext); return 1;}
+{ELSE_SYM}          {yylval = inittok(TYPE_SPEC, ELSE, 0, 0.0, yytext); return 1;}
+{END_SYM}           {yylval = inittok(TYPE_SPEC, END, 0, 0.0, yytext); return 1;}
+{FILE_SYM}          {yylval = inittok(TYPE_SPEC, PASFILE, 0, 0.0, yytext); return 1;}
+{FOR_SYM}           {yylval = inittok(TYPE_SPEC, FOR, 0, 0.0, yytext); return 1;}
+{FUNC_SYM}          {yylval = inittok(TYPE_SPEC, FUNC, 0, 0.0, yytext); return 1;}
+{GOTO_SYM}          {yylval = inittok(TYPE_SPEC, GOTO, 0, 0.0, yytext); return 1;}
+{IF_SYM}            {yylval = inittok(TYPE_SPEC, IF, 0, 0.0, yytext); return 1;}
+{IN_SYM}            {yylval = inittok(TYPE_SPEC, IN, 0, 0.0, yytext); return 1;}
+{LABEL_SYM}         {yylval = inittok(TYPE_SPEC, LABEL, 0, 0.0, yytext); return 1;}
+{MOD_SYM}           {yylval = inittok(TYPE_SPEC, MOD, 0, 0.0, yytext); return 1;}
+{NIL_SYM}           {yylval = inittok(TYPE_SPEC, NIL, 0, 0.0, yytext); return 1;}
+{NOT_SYM}           {yylval = inittok(TYPE_SPEC, NOT, 0, 0.0, yytext); return 1;}
+{OF_SYM}            {yylval = inittok(TYPE_SPEC, OF, 0, 0.0, yytext); return 1;}
+{OR_SYM}            {yylval = inittok(TYPE_SPEC, OR, 0, 0.0, yytext); return 1;}
+{PACKED_SYM}        {yylval = inittok(TYPE_SPEC, PACKED, 0, 0.0, yytext); return 1;}
+{PROC_SYM}          {yylval = inittok(TYPE_SPEC, PROC, 0, 0.0, yytext); return 1;}
+{PROG_SYM}          {yylval = inittok(TYPE_SPEC, PROG, 0, 0.0, yytext); return 1;}
+{RECORD_SYM}        {yylval = inittok(TYPE_SPEC, RECORD, 0, 0.0, yytext); return 1;}
+{REPEAT_SYM}        {yylval = inittok(TYPE_SPEC, REPEAT, 0, 0.0, yytext); return 1;}
+{SET_SYM}           {yylval = inittok(TYPE_SPEC, SET, 0, 0.0, yytext); return 1;}
+{THEN_SYM}          {yylval = inittok(TYPE_SPEC, THEN, 0, 0.0, yytext); return 1;}
+{TO_SYM}            {yylval = inittok(TYPE_SPEC, TO, 0, 0.0, yytext); return 1;}
+{TYPE_SYM}          {yylval = inittok(TYPE_SPEC, TYPE, 0, 0.0, yytext); return 1;}
+{UNTIL_SYM}         {yylval = inittok(TYPE_SPEC, UNTIL, 0, 0.0, yytext); return 1;}
+{VAR_SYM}           {yylval = inittok(TYPE_SPEC, VAR, 0, 0.0, yytext); return 1;}
+{WHILE_SYM}         {yylval = inittok(TYPE_SPEC, WHILE, 0, 0.0, yytext); return 1;}
+{WITH_SYM}          {yylval = inittok(TYPE_SPEC, WITH, 0, 0.0, yytext); return 1;}
 {ID}                {yylval = inittok(TYPE_ID, PLUS, 0, 0.0, yytext); return 1;}
 {CHAR_STR}          {yylval = inittok(TYPE_STR, PLUS, 0, 0.0, yytext); return 1;}
-{SIGNED_NUM}        {yylval = inittok(TYPE_NUM, PLUS, 0, 0.0, NULL); return 1;}
+{SIGNED_REAL}|{UNSIGNED_REAL} {yylval = inittok(TYPE_NUM, PLUS, 0, atof(yytext), yytext); return 1;}
+{SIGNED_INT}|{UNSIGNED_INT}   {yylval = inittok(TYPE_NUM, PLUS, atoi(yytext), 0.0, yytext); return 1;}
+[\x00-\xFF]         {printf("Syntax error: invalid character\n"); return 1;}
 %%
 
 int yywrap() {
