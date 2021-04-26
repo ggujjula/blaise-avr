@@ -21,8 +21,11 @@
 #include <math.h> 
 #include "token.h"
 
-token yylval = NULL;
+//token yylval = NULL;
 %}
+
+%option nounput
+%option noinput
 
 LETTER    [a-zA-Z]
 DIGIT     [0-9]
@@ -125,66 +128,66 @@ STR_CHAR .
 COMMENT ((\{)|(\(\*))([^}*]|(\*[^)]))*((\})|(\*\)))
 %%
 {COMMENT}|[\n\r\t]  {printf("Comment or whitespace: %s\n", yytext);}
-{PLUS_SYM}          {yylval = inittok(TYPE_SPEC, PLUS, 0, 0.0, yytext); return 1;}
-{MINUS_SYM}         {yylval = inittok(TYPE_SPEC, MINUS, 0, 0.0, yytext); return 1;}
-{MULT_SYM}          {yylval = inittok(TYPE_SPEC, MULT, 0, 0.0, yytext); return 1;}
-{DIVIDE_SYM}        {yylval = inittok(TYPE_SPEC, DIVIDE, 0, 0.0, yytext); return 1;}
-{EQ_SYM}            {yylval = inittok(TYPE_SPEC, EQ, 0, 0.0, yytext); return 1;}
-{LT_SYM}            {yylval = inittok(TYPE_SPEC, LT, 0, 0.0, yytext); return 1;}
-{GT_SYM}            {yylval = inittok(TYPE_SPEC, GT, 0, 0.0, yytext); return 1;}
-{LBRACKET_SYM}      {yylval = inittok(TYPE_SPEC, LBRACKET, 0, 0.0, yytext); return 1;}
-{RBRACKET_SYM}      {yylval = inittok(TYPE_SPEC, RBRACKET, 0, 0.0, yytext); return 1;}
-{DOT_SYM}           {yylval = inittok(TYPE_SPEC, DOT, 0, 0.0, yytext); return 1;}
-{COMMA_SYM}         {yylval = inittok(TYPE_SPEC, COMMA, 0, 0.0, yytext); return 1;}
-{COLON_SYM}         {yylval = inittok(TYPE_SPEC, COLON, 0, 0.0, yytext); return 1;}
-{SEMICOLON_SYM}     {yylval = inittok(TYPE_SPEC, SEMICOLON, 0, 0.0, yytext); return 1;}
-{POINT_SYM}         {yylval = inittok(TYPE_SPEC, POINT, 0, 0.0, yytext); return 1;}
-{LPAREN_SYM}        {yylval = inittok(TYPE_SPEC, LPAREN, 0, 0.0, yytext); return 1;}
-{RPAREN_SYM}        {yylval = inittok(TYPE_SPEC, RPAREN, 0, 0.0, yytext); return 1;}
-{DIAMOND_SYM}       {yylval = inittok(TYPE_SPEC, DIAMOND, 0, 0.0, yytext); return 1;}
-{LTE_SYM}           {yylval = inittok(TYPE_SPEC, LTE, 0, 0.0, yytext); return 1;}
-{GTE_SYM}           {yylval = inittok(TYPE_SPEC, GTE, 0, 0.0, yytext); return 1;}
-{ASSIGN_SYM}        {yylval = inittok(TYPE_SPEC, ASSIGN, 0, 0.0, yytext); return 1;}
-{DOTDOT_SYM}        {yylval = inittok(TYPE_SPEC, DOTDOT, 0, 0.0, yytext); return 1;}
-{AND_SYM}           {yylval = inittok(TYPE_SPEC, AND, 0, 0.0, yytext); return 1;}
-{ARRAY_SYM}         {yylval = inittok(TYPE_SPEC, ARRAY, 0, 0.0, yytext); return 1;}
-{BEGIN_SYM}         {yylval = inittok(TYPE_SPEC, PASBEGIN, 0, 0.0, yytext); return 1;}
-{CASE_SYM}          {yylval = inittok(TYPE_SPEC, CASE, 0, 0.0, yytext); return 1;}
-{CONST_SYM}         {yylval = inittok(TYPE_SPEC, CONST, 0, 0.0, yytext); return 1;}
-{DIV_SYM}           {yylval = inittok(TYPE_SPEC, DIV, 0, 0.0, yytext); return 1;}
-{DO_SYM}            {yylval = inittok(TYPE_SPEC, DO, 0, 0.0, yytext); return 1;}
-{DOWNTO_SYM}        {yylval = inittok(TYPE_SPEC, DOWNTO, 0, 0.0, yytext); return 1;}
-{ELSE_SYM}          {yylval = inittok(TYPE_SPEC, ELSE, 0, 0.0, yytext); return 1;}
-{END_SYM}           {yylval = inittok(TYPE_SPEC, END, 0, 0.0, yytext); return 1;}
-{FILE_SYM}          {yylval = inittok(TYPE_SPEC, PASFILE, 0, 0.0, yytext); return 1;}
-{FOR_SYM}           {yylval = inittok(TYPE_SPEC, FOR, 0, 0.0, yytext); return 1;}
-{FUNC_SYM}          {yylval = inittok(TYPE_SPEC, FUNC, 0, 0.0, yytext); return 1;}
-{GOTO_SYM}          {yylval = inittok(TYPE_SPEC, GOTO, 0, 0.0, yytext); return 1;}
-{IF_SYM}            {yylval = inittok(TYPE_SPEC, IF, 0, 0.0, yytext); return 1;}
-{IN_SYM}            {yylval = inittok(TYPE_SPEC, IN, 0, 0.0, yytext); return 1;}
-{LABEL_SYM}         {yylval = inittok(TYPE_SPEC, LABEL, 0, 0.0, yytext); return 1;}
-{MOD_SYM}           {yylval = inittok(TYPE_SPEC, MOD, 0, 0.0, yytext); return 1;}
-{NIL_SYM}           {yylval = inittok(TYPE_SPEC, NIL, 0, 0.0, yytext); return 1;}
-{NOT_SYM}           {yylval = inittok(TYPE_SPEC, NOT, 0, 0.0, yytext); return 1;}
-{OF_SYM}            {yylval = inittok(TYPE_SPEC, OF, 0, 0.0, yytext); return 1;}
-{OR_SYM}            {yylval = inittok(TYPE_SPEC, OR, 0, 0.0, yytext); return 1;}
-{PACKED_SYM}        {yylval = inittok(TYPE_SPEC, PACKED, 0, 0.0, yytext); return 1;}
-{PROC_SYM}          {yylval = inittok(TYPE_SPEC, PROC, 0, 0.0, yytext); return 1;}
-{PROG_SYM}          {yylval = inittok(TYPE_SPEC, PROG, 0, 0.0, yytext); return 1;}
-{RECORD_SYM}        {yylval = inittok(TYPE_SPEC, RECORD, 0, 0.0, yytext); return 1;}
-{REPEAT_SYM}        {yylval = inittok(TYPE_SPEC, REPEAT, 0, 0.0, yytext); return 1;}
-{SET_SYM}           {yylval = inittok(TYPE_SPEC, SET, 0, 0.0, yytext); return 1;}
-{THEN_SYM}          {yylval = inittok(TYPE_SPEC, THEN, 0, 0.0, yytext); return 1;}
-{TO_SYM}            {yylval = inittok(TYPE_SPEC, TO, 0, 0.0, yytext); return 1;}
-{TYPE_SYM}          {yylval = inittok(TYPE_SPEC, TYPE, 0, 0.0, yytext); return 1;}
-{UNTIL_SYM}         {yylval = inittok(TYPE_SPEC, UNTIL, 0, 0.0, yytext); return 1;}
-{VAR_SYM}           {yylval = inittok(TYPE_SPEC, VAR, 0, 0.0, yytext); return 1;}
-{WHILE_SYM}         {yylval = inittok(TYPE_SPEC, WHILE, 0, 0.0, yytext); return 1;}
-{WITH_SYM}          {yylval = inittok(TYPE_SPEC, WITH, 0, 0.0, yytext); return 1;}
-{ID}                {yylval = inittok(TYPE_ID, PLUS, 0, 0.0, yytext); return 1;}
-{CHAR_STR}          {yylval = inittok(TYPE_STR, PLUS, 0, 0.0, yytext); return 1;}
-{SIGNED_REAL}|{UNSIGNED_REAL} {yylval = inittok(TYPE_NUM, PLUS, 0, atof(yytext), yytext); return 1;}
-{SIGNED_INT}|{UNSIGNED_INT}   {yylval = inittok(TYPE_NUM, PLUS, atoi(yytext), 0.0, yytext); return 1;}
+{PLUS_SYM}          {yylval = inittok(TYPE_SPEC, PLUS, 0, 0.0, yytext); return PLUS;}
+{MINUS_SYM}         {yylval = inittok(TYPE_SPEC, MINUS, 0, 0.0, yytext); return MINUS;}
+{MULT_SYM}          {yylval = inittok(TYPE_SPEC, MULT, 0, 0.0, yytext); return MULT;}
+{DIVIDE_SYM}        {yylval = inittok(TYPE_SPEC, DIVIDE, 0, 0.0, yytext); return DIVIDE;}
+{EQ_SYM}            {yylval = inittok(TYPE_SPEC, EQ, 0, 0.0, yytext); return EQ;}
+{LT_SYM}            {yylval = inittok(TYPE_SPEC, LT, 0, 0.0, yytext); return LT;}
+{GT_SYM}            {yylval = inittok(TYPE_SPEC, GT, 0, 0.0, yytext); return GT;}
+{LBRACKET_SYM}      {yylval = inittok(TYPE_SPEC, LBRACKET, 0, 0.0, yytext); return LBRACKET;}
+{RBRACKET_SYM}      {yylval = inittok(TYPE_SPEC, RBRACKET, 0, 0.0, yytext); return RBRACKET;}
+{DOT_SYM}           {yylval = inittok(TYPE_SPEC, DOT, 0, 0.0, yytext); return DOT;}
+{COMMA_SYM}         {yylval = inittok(TYPE_SPEC, COMMA, 0, 0.0, yytext); return COMMA;}
+{COLON_SYM}         {yylval = inittok(TYPE_SPEC, COLON, 0, 0.0, yytext); return COLON;}
+{SEMICOLON_SYM}     {yylval = inittok(TYPE_SPEC, SEMICOLON, 0, 0.0, yytext); return SEMICOLON;}
+{POINT_SYM}         {yylval = inittok(TYPE_SPEC, POINT, 0, 0.0, yytext); return POINT;}
+{LPAREN_SYM}        {yylval = inittok(TYPE_SPEC, LPAREN, 0, 0.0, yytext); return LPAREN;}
+{RPAREN_SYM}        {yylval = inittok(TYPE_SPEC, RPAREN, 0, 0.0, yytext); return RPAREN;}
+{DIAMOND_SYM}       {yylval = inittok(TYPE_SPEC, DIAMOND, 0, 0.0, yytext); return DIAMOND;}
+{LTE_SYM}           {yylval = inittok(TYPE_SPEC, LTE, 0, 0.0, yytext); return LTE;}
+{GTE_SYM}           {yylval = inittok(TYPE_SPEC, GTE, 0, 0.0, yytext); return GTE;}
+{ASSIGN_SYM}        {yylval = inittok(TYPE_SPEC, ASSIGN, 0, 0.0, yytext); return ASSIGN;}
+{DOTDOT_SYM}        {yylval = inittok(TYPE_SPEC, DOTDOT, 0, 0.0, yytext); return DOTDOT;}
+{AND_SYM}           {yylval = inittok(TYPE_SPEC, AND, 0, 0.0, yytext); return AND;}
+{ARRAY_SYM}         {yylval = inittok(TYPE_SPEC, ARRAY, 0, 0.0, yytext); return ARRAY;}
+{BEGIN_SYM}         {yylval = inittok(TYPE_SPEC, PASBEGIN, 0, 0.0, yytext); return PASBEGIN;}
+{CASE_SYM}          {yylval = inittok(TYPE_SPEC, CASE, 0, 0.0, yytext); return CASE;}
+{CONST_SYM}         {yylval = inittok(TYPE_SPEC, CONST, 0, 0.0, yytext); return CONST;}
+{DIV_SYM}           {yylval = inittok(TYPE_SPEC, DIV, 0, 0.0, yytext); return DIV;}
+{DO_SYM}            {yylval = inittok(TYPE_SPEC, DO, 0, 0.0, yytext); return DO;}
+{DOWNTO_SYM}        {yylval = inittok(TYPE_SPEC, DOWNTO, 0, 0.0, yytext); return DOWNTO;}
+{ELSE_SYM}          {yylval = inittok(TYPE_SPEC, ELSE, 0, 0.0, yytext); return ELSE;}
+{END_SYM}           {yylval = inittok(TYPE_SPEC, END, 0, 0.0, yytext); return END;}
+{FILE_SYM}          {yylval = inittok(TYPE_SPEC, PASFILE, 0, 0.0, yytext); return PASFILE;}
+{FOR_SYM}           {yylval = inittok(TYPE_SPEC, FOR, 0, 0.0, yytext); return FOR;}
+{FUNC_SYM}          {yylval = inittok(TYPE_SPEC, FUNC, 0, 0.0, yytext); return FUNC;}
+{GOTO_SYM}          {yylval = inittok(TYPE_SPEC, GOTO, 0, 0.0, yytext); return GOTO;}
+{IF_SYM}            {yylval = inittok(TYPE_SPEC, IF, 0, 0.0, yytext); return IF;}
+{IN_SYM}            {yylval = inittok(TYPE_SPEC, IN, 0, 0.0, yytext); return IN;}
+{LABEL_SYM}         {yylval = inittok(TYPE_SPEC, LABEL, 0, 0.0, yytext); return LABEL;}
+{MOD_SYM}           {yylval = inittok(TYPE_SPEC, MOD, 0, 0.0, yytext); return MOD;}
+{NIL_SYM}           {yylval = inittok(TYPE_SPEC, NIL, 0, 0.0, yytext); return NIL;}
+{NOT_SYM}           {yylval = inittok(TYPE_SPEC, NOT, 0, 0.0, yytext); return NOT;}
+{OF_SYM}            {yylval = inittok(TYPE_SPEC, OF, 0, 0.0, yytext); return OF;}
+{OR_SYM}            {yylval = inittok(TYPE_SPEC, OR, 0, 0.0, yytext); return OR;}
+{PACKED_SYM}        {yylval = inittok(TYPE_SPEC, PACKED, 0, 0.0, yytext); return PACKED;}
+{PROC_SYM}          {yylval = inittok(TYPE_SPEC, PROC, 0, 0.0, yytext); return PROC;}
+{PROG_SYM}          {yylval = inittok(TYPE_SPEC, PROG, 0, 0.0, yytext); return PROG;}
+{RECORD_SYM}        {yylval = inittok(TYPE_SPEC, RECORD, 0, 0.0, yytext); return RECORD;}
+{REPEAT_SYM}        {yylval = inittok(TYPE_SPEC, REPEAT, 0, 0.0, yytext); return REPEAT;}
+{SET_SYM}           {yylval = inittok(TYPE_SPEC, SET, 0, 0.0, yytext); return SET;}
+{THEN_SYM}          {yylval = inittok(TYPE_SPEC, THEN, 0, 0.0, yytext); return THEN;}
+{TO_SYM}            {yylval = inittok(TYPE_SPEC, TO, 0, 0.0, yytext); return TO;}
+{TYPE_SYM}          {yylval = inittok(TYPE_SPEC, TYPE, 0, 0.0, yytext); return TYPE;}
+{UNTIL_SYM}         {yylval = inittok(TYPE_SPEC, UNTIL, 0, 0.0, yytext); return UNTIL;}
+{VAR_SYM}           {yylval = inittok(TYPE_SPEC, VAR, 0, 0.0, yytext); return VAR;}
+{WHILE_SYM}         {yylval = inittok(TYPE_SPEC, WHILE, 0, 0.0, yytext); return WHILE;}
+{WITH_SYM}          {yylval = inittok(TYPE_SPEC, WITH, 0, 0.0, yytext); return WITH;}
+{ID}                {yylval = inittok(TYPE_ID, ID, 0, 0.0, yytext); return ID;}
+{CHAR_STR}          {yylval = inittok(TYPE_STR, STR, 0, 0.0, yytext); return STR;}
+{SIGNED_REAL}|{UNSIGNED_REAL} {yylval = inittok(TYPE_NUM, NUM, 0, atof(yytext), yytext); return NUM;}
+{SIGNED_INT}|{UNSIGNED_INT}   {yylval = inittok(TYPE_NUM, NUM, atoi(yytext), 0.0, yytext); return NUM;}
 [\x00-\xFF]         {printf("Syntax error: invalid character\n"); return 1;}
 %%
 
@@ -192,8 +195,10 @@ int yywrap() {
   return 1;
 }
 
-int main(){
-  while(yylex() != 0){
+/*int main(){
+  int retval = yylex();
+  while(retval != 0){
+    printf("yylex returned %d\n", retval);
     printf("Token:\n");
     printf("type: %d\n", yylval->type);
     printf("specval: %d\n", yylval->specval);
@@ -202,5 +207,6 @@ int main(){
     printf("strval: %s\n", yylval->strval);
     printf("next: %p\n", yylval->next);
     printf("leaf: %p\n", yylval->leaf);
+    retval = yylex();
   }
-}
+}*/
