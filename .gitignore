@@ -1,0 +1,9 @@
+*.swp
+src/lexer.c
+src/parser.c
+src/lexer
+src/parser
+src/codegen
+src/blaise-avr
+src/compiler
+build/*
