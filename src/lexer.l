@@ -20,8 +20,6 @@
 %{
 #include <math.h> 
 #include "token.h"
-
-//token yylval = NULL;
 %}
 
 %option nounput

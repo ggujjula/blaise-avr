@@ -37,7 +37,135 @@ int yyerror(const char * err);
 %token ID PASDIR NUM LABELNUM STR
 
 %%
-  input:%empty;
+  block: labeldeclarationpart constantdefinitionpart typedefinitionpart
+          variabledeclarationpart procedureandfunctiondeclarationpart
+          statementpart
+        ;
+  labeldeclarationpart: LABEL NUM SEMICOLON
+                      | LABEL NUM addlabel SEMICOLON
+                      ;
+  addlabel: COMMA LABEL
+          ;
+  constantdefinitionpart: CONST constantdefinition
+                        ;
+  constantdefinition: ID EQ constant SEMICOLON
+                    | ID EQ constant SEMICOLON constantdefinition
+                    ;
+  sign: PLUS
+      | MINUS
+      ;
+  constant: sign NUM
+          | sign constantid
+          | NUM
+          | constantid
+          | STR
+          ;
+  constantid: ID
+            ;
+  typedefinitionpart: TYPE typedefinition
+  typedefinition: ID EQ typedenoter SEMICOLON
+                | ID EQ typedenoter SEMICOLON typedefinition
+                ;
+  typedenoter: typeid
+             | newtype
+             ;
+  newtype: newordinaltype
+        | newstructuredtype
+        | newpointertype
+        ;
+  simpletypeid: typeid
+              ;
+  structuredtypeid: typeid
+                  ;
+  pointertypeid: typeid
+                ;
+  typeid: ID
+  simpletype: ordinaltype
+            | realtypeid
+            ;
+  ordinaltype: newordinaltype
+             | ordinaltypeid
+             ;
+  newordinaltype: enumeratedtype
+                | subrangetype
+                ;
+  ordinaltypeid: typeid
+               ;
+  realtypeid: typeid
+            ;
+  enumeratedtype: LPAREN idlist RPAREN
+                ;
+  idlist: ID
+        | idlist COMMA ID
+        ;
+  structuredtype: newstructuredtype
+                | structuredtypeid
+                ;
+  newstructuredtype: PACKED unpackedstructuredtype
+                   | unpackedstructuredtype
+                   ;
+  unpackedstructuredtype: arraytype
+                        | recordtype
+                        | settype
+                        | filetype
+                        ;
+  arraytype: ARRAY LBRACKET indextype RBRACKET OF componenttype
+  indextype: ordinaltype
+           | ordinaltype COMMA indextype
+           ;
+  componenttype: typedenoter
+               ;
+  recordtype: RECORD fieldlist END
+            ;
+  fieldlist: fixedpart SEMICOLON variantpart SEMICOLON
+           | fixedpart SEMICOLON variantpart
+           | fixedpart SEMICOLON
+           | fixedpart
+           | variantpart SEMICOLON
+           | variantpart
+           |
+           ;
+  fixedpart: recordsection
+           | recordsection SEMICOLON recordsection
+  recordsection: idlist COLON typedenoter
+               ;
+  fieldid: ID
+         ; 
+  variantpart: CASE variantselector OF variant
+             | CASE variantselector OF variant variantpartaddition
+             ;
+  variantpartaddition: SEMICOLON variant
+                     | SEMICOLON variant variantpartaddition
+                     ;
+  variantselector: tagfield COLON tagtype
+                 ;
+  tagfield: ID
+          ;
+  variant: caseconstantlist COLON LPAREN fieldlist RPAREN
+         ;
+  tagtype: ordinaltypeid
+         ;
+  caseconstantlist: caseconstant
+                  | caseconstant COMMA caseconstantlist
+                  ;
+  caseconstant: constant
+              ;
+  settype: SET OF basetype
+         ;
+  basetype: ordinaltype
+          ;
+  filetype: FILE OF componenttype
+          ;
+  pointertype: newpointertype
+             | pointertypeid
+             ;
+  newpointertype: POINT domaintype
+                ;
+  domaintype: typeid
+            ;
+  variabledeclarationpart:
+  procedureandfunctiondeclarationpart:
+  statementpart:
 %%
 
 int yyerror(const char * err){
