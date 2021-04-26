@@ -22,7 +22,7 @@ typedef char toktype;
 
 struct tokenstruct {
   toktype type;
-  char specval;
+  //YYTOKENTYPE specval;
   int intval;
   double realval;
   char* strval;
@@ -34,6 +34,8 @@ struct tokenstruct {
 
 typedef struct tokenstruct* token;
 
+#include "parser.h"
+
 #define TYPE_SPEC   0
 #define TYPE_ID     1
 #define TYPE_DIR    2
@@ -42,85 +44,71 @@ typedef struct tokenstruct* token;
 #define TYPE_STR    5
 
 #define NUM_SPEC    57
-#define PLUS        0
-#define MINUS       1
-#define MULT        2
-#define DIVIDE      3
-#define EQ          4
-#define LT          5
-#define GT          6
-#define LBRACKET    7
-#define RBRACKET    8
-#define DOT         9
-#define COMMA       10
-#define COLON       11
-#define SEMICOLON   12
-#define POINT       13
-#define LPAREN      14
-#define RPAREN      15
-#define DIAMOND     16
-#define LTE         17
-#define GTE         18
-#define ASSIGN      19
-#define DOTDOT      20
-#define AND         21
-#define ARRAY       22
-#define PASBEGIN    23
-#define CASE        24
-#define CONST       25
-#define DIV         26
-#define DO          27
-#define DOWNTO      28
-#define ELSE        29
-#define END         30
+/*
+#define PLUS        1
+#define MINUS       2
+#define MULT        3
+#define DIVIDE      4
+#define EQ          5
+#define LT          6
+#define GT          7
+#define LBRACKET    8
+#define RBRACKET    9
+#define DOT         10
+#define COMMA       11
+#define COLON       12
+#define SEMICOLON   13
+#define POINT       14
+#define LPAREN      15
+#define RPAREN      16
+#define DIAMOND     17
+#define LTE         18
+#define GTE         19
+#define ASSIGN      20
+#define DOTDOT      21
+#define AND         22
+#define ARRAY       23
+#define PASBEGIN    24
+#define CASE        25
+#define CONST       26
+#define DIV         27
+#define DO          28
+#define DOWNTO      29
+#define ELSE        30
+#define END         31
 //Avoid conflict with stdio FILE
-#define PASFILE     31
-#define FOR         32
-#define FUNC        33
-#define GOTO        34
-#define IF          36
-#define IN          37
-#define LABEL       38
-#define MOD         39
-#define NIL         40
-#define NOT         41
-#define OF          42
-#define OR          43
-#define PACKED      44
-#define PROC        45
-#define PROG        46
-#define RECORD      47
-#define REPEAT      48
-#define SET         49
-#define THEN        50
-#define TO          51
-#define TYPE        52
-#define UNTIL       53
-#define VAR         54
-#define WHILE       55
-#define WITH        56
+#define PASFILE     32
+#define FOR         33
+#define FUNC        34
+#define GOTO        36
+#define IF          37
+#define IN          38
+#define LABEL       39
+#define MOD         40
+#define NIL         41
+#define NOT         42
+#define OF          43
+#define OR          44
+#define PACKED      45
+#define PROC        46
+#define PROG        47
+#define RECORD      48
+#define REPEAT      49
+#define SET         50
+#define THEN        51
+#define TO          52
+#define TYPE        53
+#define UNTIL       54
+#define VAR         55
+#define WHILE       56
+#define WITH        57  
+                    
+#define ID          58
+#define PASDIR      59
+#define NUM         60
+#define LABELNUM    61
+#define STR         62 
+*/
 
-token talloc(){
-  token t = malloc(sizeof(struct tokenstruct));
-  t->type = TYPE_SPEC;
-  t->specval = PLUS;
-  t->intval = 0;
-  t->realval = 0.0;
-  t->strval = NULL;
-  t->next = NULL;
-  t->leaf = NULL;
-  return t;
-}
-
-token inittok(toktype type, char specval, int intval, double realval, char* strval){
-  token t = malloc(sizeof(struct tokenstruct));
-  t->type = type;
-  t->specval = specval;
-  t->intval = intval;
-  t->realval = realval;
-  t->strval = strval;
-  t->next = NULL;
-  t->leaf = NULL;
-  return t;
-}
-
+token talloc();
+token inittok(toktype type, enum yytokentype specval, int intval, double realval, char* strval);

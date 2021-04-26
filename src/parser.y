@@ -17,10 +17,34 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 %{
-#define <stdio.h>
+#include <stdio.h>
+#include "token.h"
+#include "lexer.h"
+
+//#define YYSTYPE token
+
+int yyerror(const char * err);
 %}
+
+%define api.value.type {token}
+
+%token PLUS MINUS MULT DIVIDE EQ LT GT LBRACKET RBRACKET DOT COMMA COLON 
+%token SEMICOLON POINT LPAREN RPAREN DIAMOND LTE GTE ASSIGN DOTDOT AND ARRAY 
+%token PASBEGIN CASE CONST DIV DO DOWNTO ELSE END PASFILE FOR FUNC GOTO IF    
+%token IN LABEL MOD NIL NOT OF OR PACKED PROC PROG RECORD REPEAT SET THEN TO
+%token TYPE UNTIL VAR WHILE WITH
+
+%token ID PASDIR NUM LABELNUM STR
+
 %%
-  input:
-    %empty
-    ;
+  input:%empty;
 %%
+
+int yyerror(const char * err){
+  return -1;
+}
+
+int main(){
+  yyparse();
+  return 0;
+}
