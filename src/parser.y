@@ -18,7 +18,7 @@
 */
 %{
 #include <stdio.h>
-#include "token.h"
+//#include "token.h"
 #include "lexer.h"
 
 //#define YYSTYPE token
@@ -26,6 +26,7 @@
 int yyerror(const char * err);
 %}
 
+//%code requires {#include "token.h"}
 %define api.value.type {token}
 
 %token PLUS MINUS MULT DIVIDE EQ LT GT LBRACKET RBRACKET DOT COMMA COLON 
@@ -37,6 +38,7 @@ int yyerror(const char * err);
 %token ID PASDIR NUM LABELNUM STR
 
 %%
+/*
   block: labeldeclarationpart constantdefinitionpart typedefinitionpart
           variabledeclarationpart procedureandfunctiondeclarationpart
           statementpart
@@ -80,6 +82,7 @@ int yyerror(const char * err);
   pointertypeid: typeid
                 ;
   typeid: ID
+        ;
   simpletype: ordinaltype
             | realtypeid
             ;
@@ -123,7 +126,7 @@ int yyerror(const char * err);
            | fixedpart
            | variantpart SEMICOLON
            | variantpart
-           |
+           | %empty
            ;
   fixedpart: recordsection
            | recordsection SEMICOLON recordsection
@@ -154,7 +157,7 @@ int yyerror(const char * err);
          ;
   basetype: ordinaltype
           ;
-  filetype: FILE OF componenttype
+  filetype: PASFILE OF componenttype
           ;
   pointertype: newpointertype
              | pointertypeid
@@ -163,9 +166,74 @@ int yyerror(const char * err);
                 ;
   domaintype: typeid
             ;
-  variabledeclarationpart:
-  procedureandfunctiondeclarationpart:
-  statementpart:
+  variabledeclarationpart: VAR variabledeclaration SEMICOLON
+                         | %empty
+                         ;
+  variabledeclaration: idlist COLON typedenoter
+                     ;
+  variableaccess: entirevariable
+                | componentvariable
+                | identifiedvariable
+                | buffervariable
+                ; 
+  entirevariable: variableid
+                ;
+  variableid: ID
+            ;
+  componentvariable: indexedvariable
+                   | fielddesignator
+                   ;
+  indexedvariable: arrayvariable LBRACKET indexexpression RBRACKET
+  indexexpression: expression
+                 | expression COMMA indexexpression
+                 ;
+  arrayvariable: variableaccess
+               ;
+  fielddesignator: recordvariable DOT fieldspecifier
+                 | fielddesignatorid
+                 ;
+  recordvariable: variableaccess
+                ;
+  fieldspecifier: fieldid
+                ;
+  buffervariable: filevariable POINT
+                ;
+  filevariable: variableaccess
+              ;
+  procedureandfunctiondeclarationpart: proceduredeclaration SEMICOLON
+                                     | functiondeclaration SEMICOLON
+                                     ;
+  proceduredeclaration: procedureheading SEMICOLON directive
+                      | procedureidentification SEMICOLON procedureblock
+                      | procedureheading SEMICOLON procedureblock
+                      ;
+  procedureheading: PROC ID formalparameterlist
+                  | PROC ID
+                  ;
+  procedureidentification: PROC ID
+                         ;
+  procedureid: ID
+             ;
+  procedureblock: block
+                ;
+  functiondeclaration: functionheading SEMICOLON directive
+                     | functionidentification SEMICOLON functionblock
+                     | functionheading SEMICOLON functionblock
+  functionheading: FUNC ID formalparameterlist COLON resulttype
+                 | FUNC ID COLON resulttype
+                 ;
+  functionidentification: FUNC functionid
+                        ;
+  functionid: ID
+            ;
+  resulttype: simpletypeid
+            | pointertypeid
+            ;
+  functionblock: block
+               ;
+*/
+  statementpart: %empty
+               ;
 %%
 
 int yyerror(const char * err){
