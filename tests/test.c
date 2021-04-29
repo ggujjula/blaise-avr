@@ -14,21 +14,18 @@ int main(int argc, char *argv[]){
   int num_xfail = 0;
   int num_skip = 0;
 
-  char *path = NULL;
+  int num_paths = 3;
+  char **paths = {
+    "../tests/lexer",
+    "../tests/parser",
+    "../tests/codegen"
+  };
+
   DIR *test_dir = NULL;
-  DIR *test_subdir = NULL;
-  struct dirent *entry;
-  FILE *test_case = NULL;
-  FILE *test_output = NULL;
 
-  if(argc == 2){
-    path = argv[1];
-  }
-  else{
-    path = "../tests";
-  }
-
-  test_dir = opendir(path);
+  for(int i = 0; i < num_paths; i++){
+    char *path = paths[i];
+    test_dir = opendir(path);
   if(test_dir == NULL){
     printf("Could not open test dir %s\n", path);
     return 1;

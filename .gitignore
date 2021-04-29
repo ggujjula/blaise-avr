@@ -7,3 +7,6 @@ src/codegen
 src/blaise-avr
 src/compiler
 build/*
+tests/test
+tests/results
+*/__pycache__

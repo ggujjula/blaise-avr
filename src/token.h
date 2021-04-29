@@ -33,6 +33,7 @@ struct tokenstruct {
 };
 
 typedef struct tokenstruct* token;
+//typedef token YYSTYPE;
 
 #include "parser.h"
 
@@ -47,3 +48,5 @@ typedef struct tokenstruct* token;
 
 token talloc();
 token inittok(toktype type, enum yytokentype specval, int intval, double realval, char* strval);
+void debugtoken(token tok);
+void tokentest(token tok);
