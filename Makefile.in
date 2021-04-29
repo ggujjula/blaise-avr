@@ -95,7 +95,7 @@ lexertester: lexertester.o lexer.o token.o
 %.S:: $(srcdir)/%.c
 	$(CC) $(ALL_CFLAGS) -S $< -o $@
 
-%.o:: $(srcdir)/%.c
+%.o:: $(srcdir)/%.c $(srcdir)/parser.h
 	$(CC) $(ALL_CFLAGS) -c $< -o $@
 
 %: %.o
