@@ -194,9 +194,3 @@ COMMENT ((\{)|(\(\*))([^}*]|(\*[^)]))*((\})|(\*\)))
 int yywrap() {
   return 1;
 }
-
-int main(){
-  while(yylex() != 0){
-    tokentest(yylval);
-  }
-}

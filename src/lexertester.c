@@ -4,7 +4,7 @@
 int main(){
   int retval = yylex();
   while(retval != 0){
-    debugtoken(yylval);
+    tokentest(yylval);
     retval = yylex();
   }
 }
