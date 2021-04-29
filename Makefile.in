@@ -1,0 +1,102 @@
+SHELL = /bin/sh
+.SUFFIXES:
+
+prefix = /usr/local
+exec_prefix = $(prefix)
+bindir = $(exec_prefix)/bin
+sbindir = $(exec_prefix)/sbin
+libexecdir = $(exec_prefix)/libexec
+datarootdir = $(prefix)/share
+datadir = $(datarootdir)
+sysconfigdir = $(prefix)/etc
+sharedstatedir = $(prefix)/com
+localstatedir = $(prefix)/var
+runstatedir = $(localstatedir)/var
+includedir = $(prefix)/include
+oldincludedir = /usr/include
+docdir = $(datarootdir)/doc/blaise-avr
+infodir = $(datarootdir)/info
+htmldir = $(docdir)
+dvidir = $(docdir)
+pdfdir = $(docdir)
+psdir = $(docdir)
+libdir = $(exec_prefix)/lib
+lispdir = $(datarootdir)/emacs/site-lisp
+localedir = $(datarootdir)/locale
+mandir = $(datarootdir)/man
+man1dir = $(mandir)/man1
+man2dir = $(mandir)/man2
+man3dir = $(mandir)/man3
+man4dir = $(mandir)/man4
+man5dir = $(mandir)/man5
+man6dir = $(mandir)/man6
+man7dir = $(mandir)/man7
+man8dir = $(mandir)/man8
+man9dir = $(mandir)/man9
+manext = .1
+man1ext = .1
+man2ext = .2
+man3ext = .3
+man4ext = .4
+man5ext = .5
+man6ext = .6
+man7ext = .7
+man8ext = .8
+man9ext = .9
+srcdir = ../src
+
+testdir = ../tests
+
+GCC = gcc
+CC = $(GCC)
+BISON = bison
+FLEX = flex
+
+CPPFLAGS = 
+CFLAGS = -Wall -Werror -g
+LDFLAGS = 
+ALL_CFLAGS = -I$(srcdir) $(CFLAGS)
+BISONFLAGS = -Wall
+FLEXFLAGS =
+
+all: lexer parser codegen blaise-avr
+
+check: lexertester $(testdir)/test.py
+	cp $(testdir)/test.py ./test.py
+	python3 test.py
+
+install:
+
+clean:
+	rm ./*
+	cp ../Makefile.in ./Makefile
+
+$(srcdir)/lexer.c: $(srcdir)/lexer.l
+	$(FLEX) $(FLEXFLAGS) -o $(srcdir)/lexer.c $(srcdir)/lexer.l
+
+$(srcdir)/parser.h $(srcdir)/parser.c:
+	$(BISON) $(BISONFLAGS) -d -o $(srcdir)/parser.c $(srcdir)/parser.y
+
+lexer: lexerdriver.o lexer.o token.o
+	$(CC) $(ALL_CFLAGS) -o lexer $^
+
+parser: parser.o lexer.o token.o
+	$(CC) $(ALL_CFLAGS) -o parser $^
+
+codegen: codegen.o parser.o lexer.o token.o
+	$(CC) $(ALL_CFLAGS) -o codegen $^
+
+blaise-avr: codegen
+	cp codegen blaise-avr
+
+lexertester: lexertester.o lexer.o token.o
+	$(CC) $(ALL_CFLAGS) -o lexertester $^
+
+%.S:: $(srcdir)/%.c
+	$(CC) $(ALL_CFLAGS) -S $< -o $@
+
+%.o:: $(srcdir)/%.c
+	$(CC) $(ALL_CFLAGS) -c $< -o $@
+
+%: %.o
+	$(CC) $(ALL_CFLAGS) $< -o $@
