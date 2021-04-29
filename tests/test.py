@@ -24,15 +24,15 @@ class LexerTestCase(unittest.TestCase):
   )
   def test_lexer(self, name):
     test_input_path = '../tests/lexer/' + name
-    test_output_path = '../tests/results/lexer/' + name + '.test'
-    subprocess.run(['mkdir', '-p', '../tests/results/lexer']) 
+    test_output_path = './testresults/lexer/' + name + '.test'
+    subprocess.run(['mkdir', '-p', './testresults/lexer']) 
     subprocess.run(['touch', test_output_path]) 
     test_input = open(test_input_path, mode = 'rb')
     test_output = open(test_output_path, mode = 'wb')
-    subprocess.run(['../src/lexer'], stdin = test_input, stdout = test_output) 
+    subprocess.run(['./lexertester'], stdin = test_input, stdout = test_output) 
     test_input.close()
     test_output.close()
-    test_diff_path = '../tests/results/lexer/' + name + '.diff'
+    test_diff_path = './testresults/lexer/' + name + '.diff'
     subprocess.run(['touch', test_diff_path]) 
     test_diff = open(test_diff_path, mode = 'wb')
     result = True
@@ -71,5 +71,8 @@ class CodegenTestCase(unittest.TestCase):
     return
 
 if __name__ == '__main__':
-  unittest.main()
-  #printSummary()
+  if not os.getcwd().endswith('/blaise-avr/build'):
+    print('Run in build folder')
+  else:
+    unittest.main()
+    #printSummary()
