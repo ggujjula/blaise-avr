@@ -45,6 +45,8 @@ man8ext = .8
 man9ext = .9
 srcdir = ../src
 
+testdir = ../tests
+
 GCC = gcc
 CC = $(GCC)
 BISON = bison
@@ -59,7 +61,9 @@ FLEXFLAGS =
 
 all: lexer parser codegen blaise-avr
 
-check: lexertester
+check: lexertester $(testdir)/test.py
+	cp $(testdir)/test.py ./test.py
+	python3 test.py
 
 install:
 
