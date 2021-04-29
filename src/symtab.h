@@ -17,9 +17,21 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-struct tableentry{
-  char tmp;
-};
+typedef struct tableentry{
+  char *name;
+  int size;
+  struct tableentry *type;
+  struct tableentry *next;
+} tableentry;
 
 typedef struct tableentry* symentry;
-typedef struct tableentry* symtype;
+
+typedef struct symboltable{
+  symentry entrylist;
+  struct symboltable *prev;
+} symboltable;
+
+typedef struct symboltable* symtab;
+
+symtab symtab_alloc(void);
+symentry symentry_alloc(void);

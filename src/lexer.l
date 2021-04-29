@@ -21,7 +21,7 @@
 #include <math.h> 
 #include "token.h"
 
-//token yylval = NULL;
+YYSTYPE yylval;
 %}
 
 %option nounput
@@ -127,7 +127,7 @@ STR_CHAR .
 
 COMMENT ((\{)|(\(\*))([^}*]|(\*[^)]))*((\})|(\*\)))
 %%
-{COMMENT}|[\n\r\t]  {printf("Comment or whitespace: %s\n", yytext);}
+{COMMENT}|[\n\r\t\x20]        {}//printf("Comment or whitespace: %s\n", yytext);}
 {PLUS_SYM}          {yylval = inittok(TYPE_SPEC, PLUS, 0, 0.0, yytext); return PLUS;}
 {MINUS_SYM}         {yylval = inittok(TYPE_SPEC, MINUS, 0, 0.0, yytext); return MINUS;}
 {MULT_SYM}          {yylval = inittok(TYPE_SPEC, MULT, 0, 0.0, yytext); return MULT;}
@@ -188,25 +188,9 @@ COMMENT ((\{)|(\(\*))([^}*]|(\*[^)]))*((\})|(\*\)))
 {CHAR_STR}          {yylval = inittok(TYPE_STR, STR, 0, 0.0, yytext); return STR;}
 {SIGNED_REAL}|{UNSIGNED_REAL} {yylval = inittok(TYPE_NUM, NUM, 0, atof(yytext), yytext); return NUM;}
 {SIGNED_INT}|{UNSIGNED_INT}   {yylval = inittok(TYPE_NUM, NUM, atoi(yytext), 0.0, yytext); return NUM;}
-[\x00-\xFF]         {printf("Syntax error: invalid character\n"); return 1;}
+[\x00-\xFF]         {printf("Syntax error: invalid character %d\n", yytext[0]); return 1;}
 %%
 
 int yywrap() {
   return 1;
 }
-
-/*int main(){
-  int retval = yylex();
-  while(retval != 0){
-    printf("yylex returned %d\n", retval);
-    printf("Token:\n");
-    printf("type: %d\n", yylval->type);
-    printf("specval: %d\n", yylval->specval);
-    printf("intval: %d\n", yylval->intval);
-    printf("realval: %f\n", yylval->realval);
-    printf("strval: %s\n", yylval->strval);
-    printf("next: %p\n", yylval->next);
-    printf("leaf: %p\n", yylval->leaf);
-    retval = yylex();
-  }
-}*/

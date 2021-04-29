@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if !(pwd|grep -q "/blaise-avr/build$")
+  then echo "Not run in build directory of blaise-avr. Please create a build directory and run this script from there."
+  exit 1
+fi
+
+cp ../Makefile.in ./Makefile
