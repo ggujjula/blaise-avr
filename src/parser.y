@@ -35,16 +35,30 @@ int yyerror(const char * err);
 %token IN LABEL MOD NIL NOT OF OR PACKED PROC PROG RECORD REPEAT SET THEN TO
 %token TYPE UNTIL VAR WHILE WITH
 
-%token ID PASDIR NUM LABELNUM STR
+%token ID PASDIR SIGNED_REAL UNSIGNED_REAL SIGNED_INT UNSIGNED_INT LABELNUM STR
 
 %%
-/*
+  number: signednumber
+        | unsignednumber
+        ;
+  signednumber: SIGNED_REAL
+              | SIGNED_INT
+              ;
+  unsignednumber: UNSIGNED_REAL
+              | UNSIGNED_INT
+              ;
+  realnumber: SIGNED_REAL
+            | UNSIGNED_REAL
+            ;
+  integralnumber: SIGNED_INT
+                | UNSIGNED_INT
+                ;
   block: labeldeclarationpart constantdefinitionpart typedefinitionpart
           variabledeclarationpart procedureandfunctiondeclarationpart
           statementpart
         ;
-  labeldeclarationpart: LABEL NUM SEMICOLON
-                      | LABEL NUM addlabel SEMICOLON
+  labeldeclarationpart: LABEL number SEMICOLON
+                      | LABEL number addlabel SEMICOLON
                       ;
   addlabel: COMMA LABEL
           ;
@@ -56,9 +70,9 @@ int yyerror(const char * err);
   sign: PLUS
       | MINUS
       ;
-  constant: sign NUM
+  constant: sign number
           | sign constantid
-          | NUM
+          | number
           | constantid
           | STR
           ;
@@ -101,6 +115,8 @@ int yyerror(const char * err);
   idlist: ID
         | idlist COMMA ID
         ;
+  subrangetype: constant DOTDOT constant
+              ;
   structuredtype: newstructuredtype
                 | structuredtypeid
                 ;
@@ -196,6 +212,10 @@ int yyerror(const char * err);
                 ;
   fieldspecifier: fieldid
                 ;
+  identifiedvariable: pointervariable POINT
+                    ;
+  pointervariable: variableaccess
+                 ;
   buffervariable: filevariable POINT
                 ;
   filevariable: variableaccess
@@ -207,6 +227,8 @@ int yyerror(const char * err);
                       | procedureidentification SEMICOLON procedureblock
                       | procedureheading SEMICOLON procedureblock
                       ;
+  directive: ID
+           ;
   procedureheading: PROC ID formalparameterlist
                   | PROC ID
                   ;
@@ -231,9 +253,203 @@ int yyerror(const char * err);
             ;
   functionblock: block
                ;
-*/
-  statementpart: %empty
+  formalparameterlist: LPAREN formalparametersectionext RPAREN
+                     ;
+  formalparametersectionext: formalparametersection
+                           | formalparametersectionext SEMICOLON formalparametersection
+                           ;
+  formalparametersection: valueparametersection
+                        | variableparametersection
+                        | proceduralparametersection
+                        | functionalparametersection
+                        ;
+  valueparametersection: idlist COLON typeid
+                       ;
+  variableparametersection: VAR idlist COLON typeid
+                          ;
+  proceduralparametersection: procedureheading
+                            ;
+  functionalparametersection: functionheading
+                            ;
+  //skip conformant array section 6.6.3.7
+  expression: simpleexpression
+            | simpleexpression relationaloperator simpleexpression
+            ;
+  relationaloperator: EQ | DIAMOND | LT | GT | LTE | GTE | IN
+                    ;
+  simpleexpression: sign term
+                  | sign term addingoperatortermext
+                  ;
+  addingoperatortermext: addingoperator term
+                       | addingoperator term addingoperatortermext
+                       ;
+  addingoperator: PLUS | MINUS | OR
+                ;
+  term: factor
+      | factor multiplyingoperatortermext
+      ;
+  multiplyingoperatortermext: multiplyingoperator term
+                            | multiplyingoperator term multiplyingoperatortermext
+                            ;
+  multiplyingoperator: MULT | DIVIDE | DIV | MOD | AND
+                     ;
+  factor: variableaccess
+        | unsignedconstant
+        | functiondesignator
+        | setconstructor
+        | LPAREN expression RPAREN
+        | NOT factor
+        ; 
+  unsignedconstant: unsignednumber
+                  | STR
+                  | constantid
+                  | NIL
+                  ;
+  label: UNSIGNED_INT
+       ;
+  setconstructor: LBRACKET RBRACKET
+                | LBRACKET memberdesignatorext RBRACKET
+                ;
+  memberdesignatorext: memberdesignator
+                     | memberdesignator COMMA memberdesignatorext
+                     ;
+  memberdesignator: expression
+                  | expression DOTDOT expression
+                  ;
+  booleanexpression: expression
+                   ;
+  functiondesignator: functionid
+                    | functionid actualparameterlist
+                    ;
+  actualparameterlist: LPAREN actualparameterext RPAREN
+                     ;
+  actualparameterext: actualparameter
+                    | actualparameter COMMA actualparameterext
+                    ;
+  actualparameter: expression
+                 | variableaccess
+                 | procedureid
+                 | functionid
+                 ;
+  statementpart: compoundstatement
                ;
+  statement: label COLON simplestatement
+           | label COLON structuredstatement
+           | simplestatement
+           | structuredstatement
+           ;
+  simplestatement: emptystatement
+                 | assignmentstatement
+                 | procedurestatement
+                 | gotostatement
+                 ;
+  emptystatement: %empty
+                ;
+  assignmentstatement: variableaccess ASSIGN expression
+                     : functionid ASSIGN expression
+                     ;
+  procedurestatement: procedureid actualparameterlist
+                    | procedureid readparameterlist
+                    | procedureid readlnparameterlist
+                    | procedureid writeparameterlist
+                    | procedureid writelnparameterlist
+                    ;
+  gotostatement: GOTO label
+               ;
+  structuredstatement: compoundstatement
+                     | conditionalstatement
+                     | repetitivestatement
+                     | withstatement
+                     ;
+  statementsequence: statement
+                   | statement SEMICOLON statementsequence
+                   ;
+  compoundstatement: PASBEGIN statementsequence END
+                   ;
+  conditionalstatement: ifstatement
+                      | casestatement
+                      ;
+  ifstatement: IF booleanexpression THEN statement
+             | IF booleanexpression THEN statement elsepart
+             ;
+  elsepart: ELSE statement
+          ;
+  casestatement: CASE caseindex OF caselistelementext END 
+               | CASE caseindex OF caselistelementext SEMICOLON END 
+  caselistelementext: caselistelement
+                    | caselistelement SEMICOLON caselistelementext
+                    ;
+  caselistelement: caseconstantlist COLON statement
+                 ;
+  caseindex: expression
+           ;
+  repetitivestatement: repeatstatement
+                     | whilestatement
+                     | forstatement
+                     ;
+  repeatstatement: REPEAT statementsequence UNTIL booleanexpression
+                 ;
+
+  whilestatement: WHILE booleanexpression DO statement
+                 ;
+  forstatement: FOR controlvariable ASSIGN initialvalue TO finalvalue DO statement
+              | FOR controlvariable ASSIGN initialvalue DOWNTO finalvalue DO statement
+              ;
+  controlvariable: entirevariable
+                 ;
+  initialvalue: expression
+             ;
+  finalvalue: expression
+            ;
+  withstatement: WITH recordvariablelist DO statement
+               ;
+  recordvariablelist: recordvariable
+                    | recordvariable COMMA recordvariablelist
+                    ;
+  fielddesignatorid: ID
+                   ;
+  readparameterlist: LPAREN variableaccessext RPAREN
+                   | LPAREN filevariable COMMA variableaccessext RPAREN
+                   ;
+  variableaccessext: variableaccess
+                   | variableaccess COMMA variableaccessext
+                   ;
+  readlnparameterlist: LPAREN filevariable RPAREN
+                     | LPAREN variableaccess RPAREN
+                     | LPAREN filevariable variableaccessext2 RPAREN
+                     | LPAREN variableaccess variableaccessext2 RPAREN
+                     | %empty
+                     ;
+  variableaccessext2: COMMA variableaccess
+                    | COMMA variableaccess variableaccessext2
+                    ;
+  writeparameterlist: LPAREN writeparameterext RPAREN
+                    | LPAREN filevariable COMMA writeparameterext RPAREN
+  writeparameterext: writeparameter
+                   | writeparameter COMMA writeparameterext
+                   ;
+  writeparameter: expression
+                | expression COLON expression
+                | expression COLON expression COLON expression
+                ;
+  writelnparameterlist: LPAREN filevariable RPAREN 
+                      | LPAREN writeparameter RPAREN 
+                      | LPAREN filevariable writeparameterext2 RPAREN 
+                      | LPAREN writeparameter writeparameterext2 RPAREN 
+                      | %empty
+                      ; 
+  writeparameterext2: COMMA writeparameter
+                    | COMMA writeparameter writeparameterext2
+                    ;
+  program: programheading SEMICOLON programblock DOT
+         ;
+  programheading: PROG ID
+                | PROG ID LPAREN programparameterlist RPAREN
+                ;
+  programparameterlist: idlist
+                      ;
+  programblock: block
+              ;
 %%
 
 int yyerror(const char * err){
