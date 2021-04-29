@@ -27,7 +27,7 @@ struct tokenstruct {
   double realval;
   char* strval;
   symentry entry;
-  symtype type_sym;
+  symentry type_sym;
   struct tokenstruct* leaf;
   struct tokenstruct* next;
 };

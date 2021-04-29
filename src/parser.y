@@ -18,7 +18,7 @@
 */
 %{
 #include <stdio.h>
-//#include "token.h"
+#include "token.h"
 #include "lexer.h"
 
 //#define YYSTYPE token
