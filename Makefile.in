@@ -74,7 +74,7 @@ clean:
 $(srcdir)/lexer.c: $(srcdir)/lexer.l
 	$(FLEX) $(FLEXFLAGS) -o $(srcdir)/lexer.c $(srcdir)/lexer.l
 
-$(srcdir)/parser.h $(srcdir)/parser.c:
+$(srcdir)/parser.h $(srcdir)/parser.c: $(srcdir)/parser.y
 	$(BISON) $(BISONFLAGS) -d -o $(srcdir)/parser.c $(srcdir)/parser.y
 
 lexer: lexerdriver.o lexer.o token.o

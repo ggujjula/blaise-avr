@@ -186,10 +186,10 @@ COMMENT ((\{)|(\(\*))([^}*]|(\*[^)]))*((\})|(\*\)))
 {WITH_SYM}          {yylval = inittok(TYPE_SPEC, WITH, 0, 0.0, yytext); return WITH;}
 {ID}                {yylval = inittok(TYPE_ID, ID, 0, 0.0, yytext); return ID;}
 {CHAR_STR}          {yylval = inittok(TYPE_STR, STR, 0, 0.0, yytext); return STR;}
-{SIGNED_REAL}       {yylval = inittok(TYPE_NUM, SIGNED_REAL, 0, atof(yytext), yytext); return SIGNED_REAL;}
 {UNSIGNED_REAL}     {yylval = inittok(TYPE_NUM, UNSIGNED_REAL, 0, atof(yytext), yytext); return UNSIGNED_REAL;}
-{SIGNED_INT}        {yylval = inittok(TYPE_NUM, SIGNED_INT, atoi(yytext), 0.0, yytext); return SIGNED_INT;}
 {UNSIGNED_INT}      {yylval = inittok(TYPE_NUM, UNSIGNED_INT, atoi(yytext), 0.0, yytext); return UNSIGNED_INT;}
+{SIGNED_REAL}       {yylval = inittok(TYPE_NUM, SIGNED_REAL, 0, atof(yytext), yytext); return SIGNED_REAL;}
+{SIGNED_INT}        {yylval = inittok(TYPE_NUM, SIGNED_INT, atoi(yytext), 0.0, yytext); return SIGNED_INT;}
 [\x00-\xFF]         {printf("Syntax error: invalid character %d\n", yytext[0]); return 1;}
 %%
 
