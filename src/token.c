@@ -27,6 +27,7 @@ token inittok(toktype type, enum yytokentype specval, int intval, double realval
 }
 
 void debugtoken(token tok){
+  return;
   printf("Type: %x\n", tok->type);
   printf("intval: %x\n", tok->intval);
   printf("realval: %f\n", tok->realval);
