@@ -17,9 +17,15 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+typedef enum entrytype{
+  LABEL_TYPE
+} entrytype;
+
 typedef struct tableentry{
   char *name;
+  entrytype etype;
   int size;
+  int offset;
   struct tableentry *type;
   struct tableentry *next;
 } tableentry;
@@ -37,3 +43,5 @@ symtab symtab_alloc(void);
 symentry symentry_alloc(void);
 symtab symtab_push(symtab parent);
 symtab symtab_pop(symtab child);
+void symtab_add(symtab tab, symentry entry);
+symentry symtab_get(symtab tab, char *name);
