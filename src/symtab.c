@@ -1,15 +1,18 @@
 #include "symtab.h"
+#include <stdlib.h>
 
 symtab symtab_alloc(void){
-  symtab = malloc(sizeof(symboltable));
-  symtab->entrylist = NULL;
-  symtab->prev = NULL;
+  symtab retval = malloc(sizeof(symboltable));
+  retval->entrylist = NULL;
+  retval->prev = NULL;
+  return retval;
 }
 
 symentry symentry_alloc(void){
-  symentry = malloc(sizeof(tableentry));
-  symentry->name = NULL;
-  symentry->size = -1;
-  symentry->type = NULL;
-  symentry->next = NULL;
+  symentry retval = malloc(sizeof(tableentry));
+  retval->name = NULL;
+  retval->size = -1;
+  retval->type = NULL;
+  retval->next = NULL;
+  return retval;
 }

@@ -23,7 +23,11 @@
 
 //#define YYSTYPE token
 
+static symtab current_symtab;
+static symtab top_symtab;
+
 int yyerror(const char * err);
+void init_symtab(void);
 %}
 
 //%code requires {#include "token.h"}
@@ -38,6 +42,7 @@ int yyerror(const char * err);
 %token ID PASDIR SIGNED_REAL UNSIGNED_REAL SIGNED_INT UNSIGNED_INT LABELNUM STR
 
 %%
+/*
 number: 
   signednumber
 | unsignednumber
@@ -70,7 +75,7 @@ label:
 block:
   labeldeclarationpart constantdefinitionpart typedefinitionpart
   variabledeclarationpart procedureandfunctiondeclarationpart
-  statementpart
+  statementpart {println("block");}
 ;
 
 labeldeclarationpart:
@@ -169,12 +174,12 @@ realtypeid:
 enumeratedtype:
   LPAREN idlist RPAREN
 ;
-
+*/
 idlist:
-  ID
-| idlist COMMA ID
+  ID {printf("idlist first\n");}
+| ID COMMA idlist {printf("idlist next\n");}
 ;
-
+/*
 subrangetype:
   constant DOTDOT constant
 ;
@@ -722,30 +727,38 @@ writeparameterext2:
   COMMA writeparameter
 | COMMA writeparameter writeparameterext2
 ;
-
+*/
 program:
-  programheading SEMICOLON programblock DOT
+  programheading SEMICOLON programblock DOT {printf("program\n");}
 ;
 
+  //| PROG ID LPAREN programparameterlist RPAREN
 programheading:
-  PROG ID
-| PROG ID LPAREN programparameterlist RPAREN
+  PROG {printf("programheading incomplete\n");} ID {printf("programheading\n");}
 ;
 
-programparameterlist:
-  idlist
-;
+//programparameterlist:
+//  idlist
+//;
 
 programblock:
-  block
+//  block {printf("programblock\n");}
+  ID {printf("programblock\n");}
 ;
 %%
 
 int yyerror(const char * err){
+  printf("%s\n", err);
   return -1;
 }
 
-int main(){
+int main(void){
+  init_symtab(); 
   yyparse();
   return 0;
+}
+
+void init_symtab(void){
+  current_symtab = symtab_alloc();
+  top_symtab = symtab_alloc();
 }
