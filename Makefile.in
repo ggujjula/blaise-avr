@@ -80,10 +80,10 @@ $(srcdir)/parser.h $(srcdir)/parser.c: $(srcdir)/parser.y
 lexer: lexerdriver.o lexer.o token.o
 	$(CC) $(ALL_CFLAGS) -o lexer $^
 
-parser: parser.o lexer.o token.o
+parser: parser.o lexer.o token.o symtab.o
 	$(CC) $(ALL_CFLAGS) -o parser $^
 
-codegen: codegen.o parser.o lexer.o token.o
+codegen: codegen.o parser.o lexer.o token.o symtab.o
 	$(CC) $(ALL_CFLAGS) -o codegen $^
 
 blaise-avr: codegen
