@@ -18,7 +18,8 @@
 */
 
 typedef enum entrytype{
-  LABEL_TYPE
+  LABEL_TYPE,
+  CONST_TYPE
 } entrytype;
 
 typedef struct tableentry{
@@ -26,6 +27,10 @@ typedef struct tableentry{
   entrytype etype;
   int size;
   int offset;
+  //TODO: Use a union for intval, realval, and strval
+  int intval;
+  double realval;
+  char* strval;
   struct tableentry *type;
   struct tableentry *next;
 } tableentry;
