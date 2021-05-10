@@ -43,6 +43,7 @@ symentry symtab_get(symtab tab, char *name){
   while(curtab){
     symentry curlist = curtab->entrylist;
     while(curlist){
+      printf("Comparing %s to %s\n", curlist->name, name);
       if(!strcmp(curlist->name, name)){
         return curlist;
       }
