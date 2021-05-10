@@ -28,6 +28,7 @@ static symtab top_symtab;
 static token parsetree;
 
 token parse_programheading(token prog, token id, token paramlist);
+void parse_label(token label);
 
 int yyerror(const char * err);
 void init_symtab(void);
@@ -49,36 +50,36 @@ void init_parsetree(void);
 %start program
 
 %%
-/*
 number: 
-  signednumber
-| unsignednumber
+  signednumber {$$ = $1;}
+| unsignednumber {$$ = $1;}
 ;
 
 signednumber:
-  SIGNED_REAL
-| SIGNED_INT
+  SIGNED_REAL {$$ = $1;}
+| SIGNED_INT {$$ = $1;}
 ;
 
 unsignednumber:
-  UNSIGNED_REAL
-| UNSIGNED_INT
+  UNSIGNED_REAL {$$ = $1;}
+| UNSIGNED_INT {$$ = $1;}
 ;
 
 realnumber:
-  SIGNED_REAL
-| UNSIGNED_REAL
+  SIGNED_REAL {$$ = $1;}
+| UNSIGNED_REAL {$$ = $1;}
 ;
 
 integralnumber:
-  SIGNED_INT
-| UNSIGNED_INT
+  SIGNED_INT {$$ = $1;}
+| UNSIGNED_INT {$$ = $1;}
 ;
 
 label:
-  UNSIGNED_INT
+  UNSIGNED_INT {$$ = $1;}
 ;
 
+/*
 block:
   labeldeclarationpart constantdefinitionpart typedefinitionpart
   variabledeclarationpart procedureandfunctiondeclarationpart
@@ -88,22 +89,32 @@ block:
 //Temp block definition to allow for segmenting of development
 block:
   {$$ = NULL; top_symtab = symtab_push(top_symtab);}
-  statementpart {
+  labeldeclarationpart statementpart {
     top_symtab = symtab_pop(top_symtab);
     $$ = $1;
   }
 ;
-/*
 labeldeclarationpart:
-  LABEL label SEMICOLON
-| LABEL label addlabel SEMICOLON
+  LABEL addlabel SEMICOLON {
+    free($1);
+    free($3);
+    $$ = NULL;
+  }
 ;
 
 addlabel:
-  COMMA label
-| COMMA label addlabel
+  label {
+    parse_label($1);
+    $$ = NULL;
+  }
+| addlabel COMMA label {
+    parse_label($3); 
+    free($2);
+    $$ = NULL;
+  }
 ;
 
+/*
 constantdefinitionpart:
   CONST constantdefinition
 ;
@@ -781,6 +792,25 @@ programblock:
   block {$$ = $1;}
 ;
 %%
+
+void parse_label(token label){
+  if(label->intval < 0 || label->intval > 9999){
+    printf("Invalid label number: %d\n", label->intval);
+    exit(1);
+  }
+  char *label_name =  malloc(5 * sizeof(char));//Max possible string is 9999\0
+  snprintf(label_name, 5 * sizeof(char), "%d", label->intval);
+  //TODO: This prob doesn't follow scope rules
+  if(symtab_get(top_symtab, label_name)){
+    printf("Repeated label number: %s\n", label_name);
+    exit(1);
+  }
+  free(label);
+  symentry label_entry = symentry_alloc();
+  label_entry->etype = LABEL_TYPE;
+  label_entry->name = label_name;
+  symtab_add(top_symtab, label_entry);
+}
 
 token parse_programheading(token prog, token id, token paramlist){
   prog->next = id;

@@ -1,6 +1,7 @@
 #include "symtab.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 symtab symtab_alloc(void){
   symtab retval = malloc(sizeof(symboltable));
@@ -30,4 +31,24 @@ symtab symtab_pop(symtab child){
   symtab parent = child->prev;
   free(child);
   return parent;
+}
+
+void symtab_add(symtab tab, symentry entry){
+  entry->next = tab->entrylist;
+  tab->entrylist = entry;
+}
+
+symentry symtab_get(symtab tab, char *name){
+  symtab curtab = tab;
+  while(curtab){
+    symentry curlist = curtab->entrylist;
+    while(curlist){
+      if(!strcmp(curlist->name, name)){
+        return curlist;
+      }
+      curlist = curlist->next;
+    }
+    curtab = curtab->prev;
+  }
+  return NULL;
 }
