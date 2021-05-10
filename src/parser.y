@@ -19,6 +19,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "token.h"
 #include "lexer.h"
 
@@ -27,6 +28,9 @@
 static symtab top_symtab;
 static token parsetree;
 
+token parse_constant(token sign, token constant);
+void parse_constantdefinition(token id, token constant);
+token const_lookup(token id);
 token parse_programheading(token prog, token id, token paramlist);
 void parse_label(token label);
 
@@ -89,7 +93,7 @@ block:
 //Temp block definition to allow for segmenting of development
 block:
   {$$ = NULL; top_symtab = symtab_push(top_symtab);}
-  labeldeclarationpart statementpart {
+  labeldeclarationpart constantdefinitionpart statementpart {
     top_symtab = symtab_pop(top_symtab);
     $$ = $1;
   }
@@ -114,33 +118,46 @@ addlabel:
   }
 ;
 
-/*
 constantdefinitionpart:
-  CONST constantdefinition
+  CONST constantdefinition {
+    free($1);
+    $$ = NULL;
+  }
 ;
 
 constantdefinition:
-  ID EQ constant SEMICOLON
-| constantdefinition ID EQ constant SEMICOLON
+  ID EQ constant SEMICOLON {
+    parse_constantdefinition($1, $3);
+    free($2);
+    free($4);
+    $$ = NULL;
+  }
+| constantdefinition ID EQ constant SEMICOLON {
+    parse_constantdefinition($2, $4);
+    free($3);
+    free($5);
+    $$ = NULL;
+  }
 ;
 
 sign:
-  PLUS
-| MINUS
+  PLUS {$$ = $1;}
+| MINUS {$$ = $1;}
 ;
 
 constant:
-  sign number
-| sign constantid
-| number
-| constantid
-| STR
+  sign number {$$ = parse_constant($1, $2);}
+| sign constantid {$$ = parse_constant($1, $2);}
+| number {$$ = $1;}
+| constantid {$$ = $1;}
+| STR {$$ = $1;}
 ;
 
 constantid:
-  ID
+  ID {$$ = const_lookup($1);}
 ;
 
+/*
 typedefinitionpart:
   TYPE typedefinition
 ;
@@ -804,6 +821,57 @@ programblock:
 ;
 %%
 
+token parse_constant(token sign, token constant){
+  if(!sign){
+    return constant;
+  }
+  if(constant->type_sym != symtab_get(top_symtab, "integer") ||
+      constant->type_sym != symtab_get(top_symtab, "real")){
+    printf("Sign can't be applied to non integer or real constant\n");
+    exit(1);
+  }
+  if(!strcmp(sign->strval, "-")){
+    constant->intval *= -1;
+    constant->realval *= -1;
+    constant->entry = NULL;
+  }
+  free(sign);
+  return constant;
+}
+
+void parse_constantdefinition(token id, token constant){
+  printf("Adding constant %s to symtab\n", id->strval);
+  symentry constentry = symentry_alloc();
+  constentry->name = id->strval;
+  constentry->etype = CONST_TYPE;
+  constentry->intval = constant->intval;
+  constentry->realval = constant->realval;
+  constentry->strval = constant->strval;
+  constentry->type = constant->type_sym;
+  symtab_add(top_symtab, constentry);
+  free(id);
+  free(constant);
+}
+
+token const_lookup(token id){
+  printf("id is %s\n", id->strval);
+  symentry constentry = symtab_get(top_symtab, id->strval);
+  if(!constentry){
+    printf("No id %s declared\n", id->strval);
+    exit(1);
+  }
+  if(constentry->etype != CONST_TYPE){
+    printf("%s is not a constant\n", id->strval);
+    exit(1);
+  }
+  id->intval = constentry->intval;
+  id->realval = constentry->realval;
+  id->strval = constentry->strval;
+  id->entry = constentry;
+  id->type_sym = constentry->type;
+  return id;
+}
+
 void parse_label(token label){
   if(label->intval < 0 || label->intval > 9999){
     printf("Invalid label number: %d\n", label->intval);
@@ -846,6 +914,18 @@ int main(void){
 
 void init_symtab(void){
   top_symtab = symtab_alloc();
+  symentry intentry = symentry_alloc();
+  symentry realentry = symentry_alloc();
+  symentry boolentry = symentry_alloc();
+  symentry charentry = symentry_alloc();
+  intentry->name = "integer";
+  realentry->name = "real";
+  boolentry->name = "Boolean";
+  charentry->name = "char";
+  symtab_add(top_symtab, intentry);
+  symtab_add(top_symtab, realentry);
+  symtab_add(top_symtab, boolentry);
+  symtab_add(top_symtab, charentry);
 }
 
 void init_parsetree(void){
