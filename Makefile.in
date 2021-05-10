@@ -70,6 +70,7 @@ install:
 clean:
 	rm ./*
 	cp ../Makefile.in ./Makefile
+	cp ../test.pas ./
 
 $(srcdir)/lexer.c: $(srcdir)/lexer.l
 	$(FLEX) $(FLEXFLAGS) -o $(srcdir)/lexer.c $(srcdir)/lexer.l

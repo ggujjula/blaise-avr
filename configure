@@ -6,3 +6,4 @@ if !(pwd|grep -q "/blaise-avr/build$")
 fi
 
 cp ../Makefile.in ./Makefile
+cp ../test.pas ./
