@@ -35,3 +35,5 @@ typedef struct symboltable* symtab;
 
 symtab symtab_alloc(void);
 symentry symentry_alloc(void);
+symtab symtab_push(symtab parent);
+symtab symtab_pop(symtab child);
