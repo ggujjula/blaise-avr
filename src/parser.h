@@ -107,9 +107,12 @@ extern int yydebug;
     WITH = 313,
     ID = 314,
     PASDIR = 315,
-    NUM = 316,
-    LABELNUM = 317,
-    STR = 318
+    SIGNED_REAL = 316,
+    UNSIGNED_REAL = 317,
+    SIGNED_INT = 318,
+    UNSIGNED_INT = 319,
+    LABELNUM = 320,
+    STR = 321
   };
 #endif
 
