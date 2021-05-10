@@ -18,20 +18,25 @@
 */
 %{
 #include <stdio.h>
+#include <stdlib.h>
 #include "token.h"
 #include "lexer.h"
 
 //#define YYSTYPE token
 
-static symtab current_symtab;
 static symtab top_symtab;
+static token parsetree;
+
+token parse_programheading(token prog, token id, token paramlist);
 
 int yyerror(const char * err);
 void init_symtab(void);
+void init_parsetree(void);
 %}
 
 //%code requires {#include "token.h"}
 %define api.value.type {token}
+%define parse.trace
 
 %token PLUS MINUS MULT DIVIDE EQ LT GT LBRACKET RBRACKET DOT COMMA COLON 
 %token SEMICOLON POINT LPAREN RPAREN DIAMOND LTE GTE ASSIGN DOTDOT AND ARRAY 
@@ -40,6 +45,8 @@ void init_symtab(void);
 %token TYPE UNTIL VAR WHILE WITH
 
 %token ID PASDIR SIGNED_REAL UNSIGNED_REAL SIGNED_INT UNSIGNED_INT LABELNUM STR
+
+%start program
 
 %%
 /*
@@ -75,9 +82,18 @@ label:
 block:
   labeldeclarationpart constantdefinitionpart typedefinitionpart
   variabledeclarationpart procedureandfunctiondeclarationpart
-  statementpart {println("block");}
+  statementpart {printf("block");}
 ;
-
+*/
+//Temp block definition to allow for segmenting of development
+block:
+  {$$ = NULL; top_symtab = symtab_push(top_symtab);}
+  statementpart {
+    top_symtab = symtab_pop(top_symtab);
+    $$ = $1;
+  }
+;
+/*
 labeldeclarationpart:
   LABEL label SEMICOLON
 | LABEL label addlabel SEMICOLON
@@ -176,8 +192,12 @@ enumeratedtype:
 ;
 */
 idlist:
-  ID {printf("idlist first\n");}
-| ID COMMA idlist {printf("idlist next\n");}
+  ID {$$ = $1;}
+| idlist COMMA ID {
+    $1->next = $3;
+    free($2);
+    $$ = $1;
+  }
 ;
 /*
 subrangetype:
@@ -548,11 +568,11 @@ actualparameter:
 | procedureid
 | functionid
 ;
-
+*/
 statementpart:
-  compoundstatement
+  compoundstatement {$$ = $1;}
 ;
-
+/*
 statement:
   label COLON simplestatement
 | label COLON structuredstatement
@@ -599,11 +619,16 @@ statementsequence:
   statement
 | statement SEMICOLON statementsequence
 ;
-
+*/
+  //PASBEGIN statementsequence END
 compoundstatement:
-  PASBEGIN statementsequence END
+  PASBEGIN END {
+    $$ = NULL;
+    free($1);
+    free($2);
+  }
 ;
-
+/*
 conditionalstatement:
   ifstatement
 | casestatement
@@ -729,23 +754,41 @@ writeparameterext2:
 ;
 */
 program:
-  programheading SEMICOLON programblock DOT {printf("program\n");}
+  programheading SEMICOLON programblock DOT {
+    $1->leaf = $3;
+    parsetree = $1;
+    free($2);
+    free($4);
+  }
 ;
 
-  //| PROG ID LPAREN programparameterlist RPAREN
 programheading:
-  PROG {printf("programheading incomplete\n");} ID {printf("programheading\n");}
+  PROG ID {
+    $$ = parse_programheading($1, $2, NULL);
+  }
+| PROG ID LPAREN programparameterlist RPAREN {
+    $$ = parse_programheading($1, $2, $4);
+    free($3);
+    free($5);
+  }
 ;
 
-//programparameterlist:
-//  idlist
-//;
+programparameterlist:
+  idlist {$$ = $1;}
+;
 
 programblock:
-//  block {printf("programblock\n");}
-  ID {printf("programblock\n");}
+  block {$$ = $1;}
 ;
 %%
+
+token parse_programheading(token prog, token id, token paramlist){
+  prog->next = id;
+  if(paramlist){
+    id->next = paramlist;
+  }
+  return prog;
+}
 
 int yyerror(const char * err){
   printf("%s\n", err);
@@ -753,12 +796,17 @@ int yyerror(const char * err){
 }
 
 int main(void){
+  yydebug = 1;
   init_symtab(); 
+  init_parsetree();
   yyparse();
   return 0;
 }
 
 void init_symtab(void){
-  current_symtab = symtab_alloc();
   top_symtab = symtab_alloc();
+}
+
+void init_parsetree(void){
+  parsetree = NULL;
 }
