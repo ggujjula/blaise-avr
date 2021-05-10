@@ -28,6 +28,7 @@ static symtab top_symtab;
 static token parsetree;
 
 token parse_programheading(token prog, token id, token paramlist);
+void parse_label(token label);
 
 int yyerror(const char * err);
 void init_symtab(void);
@@ -49,36 +50,36 @@ void init_parsetree(void);
 %start program
 
 %%
-/*
 number: 
-  signednumber
-| unsignednumber
+  signednumber {$$ = $1;}
+| unsignednumber {$$ = $1;}
 ;
 
 signednumber:
-  SIGNED_REAL
-| SIGNED_INT
+  SIGNED_REAL {$$ = $1;}
+| SIGNED_INT {$$ = $1;}
 ;
 
 unsignednumber:
-  UNSIGNED_REAL
-| UNSIGNED_INT
+  UNSIGNED_REAL {$$ = $1;}
+| UNSIGNED_INT {$$ = $1;}
 ;
 
 realnumber:
-  SIGNED_REAL
-| UNSIGNED_REAL
+  SIGNED_REAL {$$ = $1;}
+| UNSIGNED_REAL {$$ = $1;}
 ;
 
 integralnumber:
-  SIGNED_INT
-| UNSIGNED_INT
+  SIGNED_INT {$$ = $1;}
+| UNSIGNED_INT {$$ = $1;}
 ;
 
 label:
-  UNSIGNED_INT
+  UNSIGNED_INT {$$ = $1;}
 ;
 
+/*
 block:
   labeldeclarationpart constantdefinitionpart typedefinitionpart
   variabledeclarationpart procedureandfunctiondeclarationpart
@@ -88,29 +89,39 @@ block:
 //Temp block definition to allow for segmenting of development
 block:
   {$$ = NULL; top_symtab = symtab_push(top_symtab);}
-  statementpart {
+  labeldeclarationpart statementpart {
     top_symtab = symtab_pop(top_symtab);
     $$ = $1;
   }
 ;
-/*
 labeldeclarationpart:
-  LABEL label SEMICOLON
-| LABEL label addlabel SEMICOLON
+  LABEL addlabel SEMICOLON {
+    free($1);
+    free($3);
+    $$ = NULL;
+  }
 ;
 
 addlabel:
-  COMMA label
-| COMMA label addlabel
+  label {
+    parse_label($1);
+    $$ = NULL;
+  }
+| addlabel COMMA label {
+    parse_label($3); 
+    free($2);
+    $$ = NULL;
+  }
 ;
 
+/*
 constantdefinitionpart:
   CONST constantdefinition
 ;
 
 constantdefinition:
   ID EQ constant SEMICOLON
-| ID EQ constant SEMICOLON constantdefinition
+| constantdefinition ID EQ constant SEMICOLON
 ;
 
 sign:
@@ -132,9 +143,11 @@ constantid:
 
 typedefinitionpart:
   TYPE typedefinition
+;
+
 typedefinition:
   ID EQ typedenoter SEMICOLON
-| ID EQ typedenoter SEMICOLON typedefinition
+| typedefinition ID EQ typedenoter SEMICOLON
 ;
 
 typedenoter:
@@ -223,9 +236,11 @@ unpackedstructuredtype:
 
 arraytype:
   ARRAY LBRACKET indextype RBRACKET OF componenttype
+;
+
 indextype:
   ordinaltype
-| ordinaltype COMMA indextype
+| indextype COMMA ordinaltype
 ;
 
 componenttype:
@@ -249,6 +264,8 @@ fieldlist:
 fixedpart:
   recordsection
 | recordsection SEMICOLON recordsection
+;
+
 recordsection:
   idlist COLON typedenoter
 ;
@@ -263,7 +280,7 @@ variantpart:
 
 variantpartaddition:
   SEMICOLON variant
-| SEMICOLON variant variantpartaddition
+| variantpartaddition SEMICOLON variant
 ;
 
 variantselector:
@@ -284,7 +301,7 @@ tagtype:
 
 caseconstantlist:
   caseconstant
-| caseconstant COMMA caseconstantlist
+| caseconstantlist COMMA caseconstant
 ;
 
 caseconstant:
@@ -350,7 +367,7 @@ indexedvariable:
 
 indexexpression:
   expression
-| expression COMMA indexexpression
+| indexexpression COMMA expression
 ;
 
 arrayvariable:
@@ -493,7 +510,7 @@ simpleexpression:
 
 addingoperatortermext:
   addingoperator term
-| addingoperator term addingoperatortermext
+| addingoperatortermext term addingoperator
 ;
 
 addingoperator:
@@ -507,7 +524,7 @@ term:
 
 multiplyingoperatortermext:
   multiplyingoperator term
-| multiplyingoperator term multiplyingoperatortermext
+| multiplyingoperatortermext term multiplyingoperator
 ;
 
 multiplyingoperator:
@@ -536,7 +553,7 @@ setconstructor:
 
 memberdesignatorext:
   memberdesignator
-| memberdesignator COMMA memberdesignatorext
+| memberdesignatorext COMMA memberdesignator
 ;
 
 memberdesignator:
@@ -559,7 +576,7 @@ actualparameterlist:
 
 actualparameterext:
   actualparameter
-| actualparameter COMMA actualparameterext
+| actualparameterext COMMA actualparameter
 ;
 
 actualparameter:
@@ -617,7 +634,7 @@ structuredstatement:
 
 statementsequence:
   statement
-| statement SEMICOLON statementsequence
+| statementsequence SEMICOLON statement
 ;
 */
   //PASBEGIN statementsequence END
@@ -646,9 +663,11 @@ elsepart:
 casestatement:
   CASE caseindex OF caselistelementext END 
 | CASE caseindex OF caselistelementext SEMICOLON END 
+;
+
 caselistelementext:
   caselistelement
-| caselistelement SEMICOLON caselistelementext
+| caselistelementext SEMICOLON caselistelement
 ;
 
 caselistelement:
@@ -711,7 +730,7 @@ readparameterlist:
 
 variableaccessext:
   variableaccess
-| variableaccess COMMA variableaccessext
+| variableaccessext COMMA variableaccess
 ;
 
 readlnparameterlist:
@@ -724,15 +743,17 @@ readlnparameterlist:
 
 variableaccessext2:
   COMMA variableaccess
-| COMMA variableaccess variableaccessext2
+| variableaccessext2 COMMA variableaccess
 ;
 
 writeparameterlist:
   LPAREN writeparameterext RPAREN
 | LPAREN filevariable COMMA writeparameterext RPAREN
+;
+
 writeparameterext:
   writeparameter
-| writeparameter COMMA writeparameterext
+| writeparameterext COMMA writeparameter
 ;
 
 writeparameter:
@@ -748,9 +769,10 @@ writelnparameterlist:
 | LPAREN writeparameter writeparameterext2 RPAREN 
 | %empty
 ; 
+
 writeparameterext2:
   COMMA writeparameter
-| COMMA writeparameter writeparameterext2
+| writeparameterext2 COMMA writeparameter
 ;
 */
 program:
@@ -781,6 +803,25 @@ programblock:
   block {$$ = $1;}
 ;
 %%
+
+void parse_label(token label){
+  if(label->intval < 0 || label->intval > 9999){
+    printf("Invalid label number: %d\n", label->intval);
+    exit(1);
+  }
+  char *label_name =  malloc(5 * sizeof(char));//Max possible string is 9999\0
+  snprintf(label_name, 5 * sizeof(char), "%d", label->intval);
+  //TODO: This prob doesn't follow scope rules
+  if(symtab_get(top_symtab, label_name)){
+    printf("Repeated label number: %s\n", label_name);
+    exit(1);
+  }
+  free(label);
+  symentry label_entry = symentry_alloc();
+  label_entry->etype = LABEL_TYPE;
+  label_entry->name = label_name;
+  symtab_add(top_symtab, label_entry);
+}
 
 token parse_programheading(token prog, token id, token paramlist){
   prog->next = id;
