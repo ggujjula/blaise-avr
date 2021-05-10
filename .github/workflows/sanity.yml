@@ -1,0 +1,19 @@
+name: Build Sanity Check
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Create build dir
+      run: mkdir build/; cd build/
+    - name: configure
+      run: ../configure
+    - name: make -j
+      run: make -j
