@@ -69,6 +69,7 @@ unsignednumber:
 | UNSIGNED_INT
 ;
 
+/*
 realnumber:
   SIGNED_REAL
 | UNSIGNED_REAL
@@ -78,6 +79,7 @@ integralnumber:
   SIGNED_INT
 | UNSIGNED_INT
 ;
+*/
 
 label:
   UNSIGNED_INT
@@ -385,7 +387,7 @@ variantext:
 variantselector:
   tagfield COLON tagtype {
     free($2);
-    $1->type_sym = $3->symentry;
+    $1->type_sym = $3->entry;
     free($3);
     $$ = $1;
   }
@@ -429,7 +431,11 @@ caseconstant:
 ;
 
 settype:
-  SET OF basetype
+  SET OF basetype{
+    free($1);
+    free($2);
+    $$ = $3;
+  }
 ;
 
 basetype:
@@ -437,7 +443,11 @@ basetype:
 ;
 
 filetype:
-  PASFILE OF componenttype
+  PASFILE OF componenttype {
+    free($1);
+    free($2);
+    $$ = $3;
+  }
 ;
 
 pointertype:
@@ -446,13 +456,17 @@ pointertype:
 ;
 
 newpointertype:
-  POINT domaintype
+  POINT domaintype {
+    free($1);
+    $$ = $2;
+  }
 ;
 
 domaintype:
   typeid
 ;
 
+/*
 variabledeclarationpart:
   VAR variabledeclaration SEMICOLON
 | %empty
@@ -462,7 +476,6 @@ variabledeclaration:
   idlist COLON typedenoter
 ;
 
-/*
 variableaccess:
   entirevariable
 | componentvariable
