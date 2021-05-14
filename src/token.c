@@ -5,7 +5,12 @@
 
 token talloc(){
   token t = malloc(sizeof(struct tokenstruct));
-  t->type = TYPE_SPEC;
+  cleartok(t);
+  return t;
+}
+
+token cleartok(token t){
+  t->type = TYPE_CLEAR;
   //t->specval = PLUS;
   t->intval = 0;
   t->realval = 0.0;

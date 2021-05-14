@@ -55,32 +55,32 @@ void init_parsetree(void);
 
 %%
 number: 
-  signednumber {$$ = $1;}
-| unsignednumber {$$ = $1;}
+  signednumber
+| unsignednumber
 ;
 
 signednumber:
-  SIGNED_REAL {$$ = $1;}
-| SIGNED_INT {$$ = $1;}
+  SIGNED_REAL
+| SIGNED_INT
 ;
 
 unsignednumber:
-  UNSIGNED_REAL {$$ = $1;}
-| UNSIGNED_INT {$$ = $1;}
+  UNSIGNED_REAL
+| UNSIGNED_INT
 ;
 
 realnumber:
-  SIGNED_REAL {$$ = $1;}
-| UNSIGNED_REAL {$$ = $1;}
+  SIGNED_REAL
+| UNSIGNED_REAL
 ;
 
 integralnumber:
-  SIGNED_INT {$$ = $1;}
-| UNSIGNED_INT {$$ = $1;}
+  SIGNED_INT
+| UNSIGNED_INT
 ;
 
 label:
-  UNSIGNED_INT {$$ = $1;}
+  UNSIGNED_INT
 ;
 
 /*
@@ -93,7 +93,8 @@ block:
 //Temp block definition to allow for segmenting of development
 block:
   {$$ = NULL; top_symtab = symtab_push(top_symtab);}
-  labeldeclarationpart constantdefinitionpart statementpart {
+  labeldeclarationpart constantdefinitionpart typedefinitionpart
+  statementpart {
     top_symtab = symtab_pop(top_symtab);
     $$ = $1;
   }
@@ -141,30 +142,42 @@ constantdefinition:
 ;
 
 sign:
-  PLUS {$$ = $1;}
-| MINUS {$$ = $1;}
+  PLUS
+| MINUS
 ;
 
 constant:
   sign number {$$ = parse_constant($1, $2);}
 | sign constantid {$$ = parse_constant($1, $2);}
-| number {$$ = $1;}
-| constantid {$$ = $1;}
-| STR {$$ = $1;}
+| number
+| constantid
+| STR
 ;
 
 constantid:
   ID {$$ = const_lookup($1);}
 ;
 
-/*
 typedefinitionpart:
-  TYPE typedefinition
+  TYPE typedefinition {
+    free($1);
+    $$ = NULL;
+  }
 ;
 
 typedefinition:
-  ID EQ typedenoter SEMICOLON
-| typedefinition ID EQ typedenoter SEMICOLON
+  ID EQ typedenoter SEMICOLON {
+    parse_typedefinition($1, $3);
+    free($2);
+    free($4);
+    $$ = NULL;
+  }
+| typedefinition ID EQ typedenoter SEMICOLON {
+    parse_typedefinition($2, $4);
+    free($3);
+    free($5);
+    $$ = NULL;
+  }
 ;
 
 typedenoter:
@@ -191,7 +204,7 @@ pointertypeid:
 ;
 
 typeid:
-  ID
+  ID {$$ = type_lookup($1);}
 ;
 
 simpletype:
@@ -218,20 +231,24 @@ realtypeid:
 ;
 
 enumeratedtype:
-  LPAREN idlist RPAREN
+  LPAREN idlist RPAREN{
+    free($1);
+    free($3);
+    $$ = $2;
+  }
 ;
-*/
+
 idlist:
-  ID {$$ = $1;}
+  ID
 | idlist COMMA ID {
     $1->next = $3;
     free($2);
     $$ = $1;
   }
 ;
-/*
+
 subrangetype:
-  constant DOTDOT constant
+  constant DOTDOT constant {$$ = parse_subrangetype($2, $1, $3);}
 ;
 
 structuredtype:
@@ -240,8 +257,8 @@ structuredtype:
 ;
 
 newstructuredtype:
-  PACKED unpackedstructuredtype
-| unpackedstructuredtype
+  PACKED unpackedstructuredtype {$$ = parse_newstructuredtype($1, true);}
+| unpackedstructuredtype {$$ = parse_newstructuredtype($1, false);}
 ;
 
 unpackedstructuredtype:
@@ -252,12 +269,28 @@ unpackedstructuredtype:
 ;
 
 arraytype:
-  ARRAY LBRACKET indextype RBRACKET OF componenttype
+  ARRAY LBRACKET indextype RBRACKET OF componenttype {
+    free($1);
+    free($2);
+    free($4);
+    free($5);
+    $$ = parse_arraytype($3, $6);
+  }
 ;
 
 indextype:
   ordinaltype
-| indextype COMMA ordinaltype
+| indextype COMMA ordinaltype {
+    free($2);
+    token index = $1;
+    token end = NULL;
+    while(index){
+      end = index;
+      index = index->next;
+    }
+    end->next = $3;
+    $$ = $1; 
+  }
 ;
 
 componenttype:
@@ -265,43 +298,97 @@ componenttype:
 ;
 
 recordtype:
-  RECORD fieldlist END
+  RECORD fieldlist END {
+    free($1);
+    free($1);
+    $$ = $2;
+  }
 ;
 
 fieldlist:
-  fixedpart SEMICOLON variantpart SEMICOLON
-| fixedpart SEMICOLON variantpart
-| fixedpart SEMICOLON
-| fixedpart
-| variantpart SEMICOLON
-| variantpart
-| %empty
+  fixedpart SEMICOLON variantpart SEMICOLON {
+    free($2);
+    free($4);
+    $$ = parse_fieldlist($1, $3);
+  }
+| fixedpart SEMICOLON variantpart {
+    free($2);
+    $$ = parse_fieldlist($1, $3);
+  }
+| fixedpart SEMICOLON {
+    free($2);
+    $$ = parse_fieldlist($1, NULL);
+  }
+| fixedpart {
+    $$ = parse_fieldlist($1, NULL);
+  }
+| variantpart SEMICOLON {
+    free($2);
+    $$ = parse_fieldlist(NULL, $1);
+  }
+| variantpart {
+    $$ = parse_fieldlist(NULL, $1);
+  }
+| %empty {$$ = NULL;}
 ;
 
 fixedpart:
   recordsection
-| recordsection SEMICOLON recordsection
+| recordsection SEMICOLON recordsection {
+    free($2);
+    token index = $1;
+    token end = NULL;
+    while(index){
+      end = index;
+      index = index->next;
+    }
+    end->next = $3;
+    $$ = $1; 
+  }
 ;
 
 recordsection:
-  idlist COLON typedenoter
+  idlist COLON typedenoter {
+    free($2);
+    $$ = parse_recordsection($1, $3);
+  }
 ;
 
 fieldid:
   ID
 ; 
+
 variantpart:
-  CASE variantselector OF variant
-| CASE variantselector OF variant variantpartaddition
+  CASE variantselector OF variantext {
+    free($1);
+    free($3);
+    $2->leaf = $4;
+    $$ = $2;
+  }
 ;
 
-variantpartaddition:
-  SEMICOLON variant
-| variantpartaddition SEMICOLON variant
+variantext:
+  variant
+| variantext SEMICOLON variant {
+    free($2);
+    token index = $1;
+    token end = NULL;
+    while(index){
+      end = index;
+      index = index->next;
+    }
+    end->next = $3;
+    $$ = $1; 
+  }
 ;
 
 variantselector:
-  tagfield COLON tagtype
+  tagfield COLON tagtype {
+    free($2);
+    $1->type_sym = $3->symentry;
+    free($3);
+    $$ = $1;
+  }
 ;
 
 tagfield:
@@ -309,16 +396,32 @@ tagfield:
 ;
 
 variant:
-  caseconstantlist COLON LPAREN fieldlist RPAREN
+  caseconstantlist COLON LPAREN fieldlist RPAREN {
+    free($2);
+    free($3);
+    free($5);
+    $1->leaf = $4;
+    $$ = $1;
+  }
 ;
 
 tagtype:
-  ordinaltypeid
+  ordinaltypeid {$$ = type_lookup($1);}
 ;
 
 caseconstantlist:
   caseconstant
-| caseconstantlist COMMA caseconstant
+| caseconstantlist COMMA caseconstant {
+    free($2);
+    token index = $1;
+    token end = NULL;
+    while(index){
+      end = index;
+      index = index->next;
+    }
+    end->next = $3;
+    $$ = $1; 
+  }
 ;
 
 caseconstant:
@@ -359,6 +462,7 @@ variabledeclaration:
   idlist COLON typedenoter
 ;
 
+/*
 variableaccess:
   entirevariable
 | componentvariable
@@ -604,7 +708,7 @@ actualparameter:
 ;
 */
 statementpart:
-  compoundstatement {$$ = $1;}
+  compoundstatement
 ;
 /*
 statement:
@@ -813,11 +917,11 @@ programheading:
 ;
 
 programparameterlist:
-  idlist {$$ = $1;}
+  idlist
 ;
 
 programblock:
-  block {$$ = $1;}
+  block
 ;
 %%
 

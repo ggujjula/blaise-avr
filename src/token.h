@@ -37,16 +37,18 @@ typedef struct tokenstruct* token;
 
 #include "parser.h"
 
-#define TYPE_SPEC   0
-#define TYPE_ID     1
-#define TYPE_DIR    2
-#define TYPE_NUM    3
-#define TYPE_LABEL  4
-#define TYPE_STR    5
+#define TYPE_CLEAR  0
+#define TYPE_SPEC   1
+#define TYPE_ID     2
+#define TYPE_DIR    3
+#define TYPE_NUM    4
+#define TYPE_LABEL  5
+#define TYPE_STR    6
 
 #define NUM_SPEC    57
 
 token talloc();
+token cleartok(token t);
 token inittok(toktype type, enum yytokentype specval, int intval, double realval, char* strval);
 void debugtoken(token tok);
 void tokentest(token tok);
