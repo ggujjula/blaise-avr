@@ -30,7 +30,14 @@ static token parsetree;
 
 token parse_constant(token sign, token constant);
 void parse_constantdefinition(token id, token constant);
-token const_lookup(token id);
+void parse_typedefinition(token id, token def);
+token parse_enumeratedtype(token idlist);
+token parse_subrangetype(token filltok, token lowbound, token highbound);
+token parse_newstructuredtype(token typetok, token packed);
+token parse_arraytype(token indicies, token typetok);
+token parse_fieldlist(token fixed, token variant);
+token parse_recordsection(token idlist, token typedenoter);
+token lookup(token id, entrytype t);
 token parse_programheading(token prog, token id, token paramlist);
 void parse_label(token label);
 
@@ -157,7 +164,7 @@ constant:
 ;
 
 constantid:
-  ID {$$ = const_lookup($1);}
+  ID {$$ = lookup($1, CONST_ENTRY);}
 ;
 
 typedefinitionpart:
@@ -206,7 +213,7 @@ pointertypeid:
 ;
 
 typeid:
-  ID {$$ = type_lookup($1);}
+  ID {$$ = lookup($1, TYPE_ENTRY);}
 ;
 
 simpletype:
@@ -236,14 +243,14 @@ enumeratedtype:
   LPAREN idlist RPAREN{
     free($1);
     free($3);
-    $$ = $2;
+    $$ = parse_enumeratedtype($2);
   }
 ;
 
 idlist:
   ID
 | idlist COMMA ID {
-    $1->next = $3;
+    token_append($1, $3);
     free($2);
     $$ = $1;
   }
@@ -259,8 +266,8 @@ structuredtype:
 ;
 
 newstructuredtype:
-  PACKED unpackedstructuredtype {$$ = parse_newstructuredtype($1, true);}
-| unpackedstructuredtype {$$ = parse_newstructuredtype($1, false);}
+  PACKED unpackedstructuredtype {$$ = parse_newstructuredtype($1, $2);}
+| unpackedstructuredtype {$$ = parse_newstructuredtype($1, NULL);}
 ;
 
 unpackedstructuredtype:
@@ -408,7 +415,7 @@ variant:
 ;
 
 tagtype:
-  ordinaltypeid {$$ = type_lookup($1);}
+  ordinaltypeid {$$ = lookup($1, TYPE_ENTRY);}
 ;
 
 caseconstantlist:
@@ -938,6 +945,48 @@ programblock:
 ;
 %%
 
+token parse_enumeratedtype(token idlist){
+  symentry firstentry = NULL;
+  symentry lastentry = NULL;
+  for(int i = 0; idlist; i++){
+    symentry entry = symentry_alloc();
+    entry->name = idlist->strval;
+    entry->etype = CONST_ENTRY;
+    entry->intval = i;
+    if(!i){
+      firstentry = entry;
+      lastentry = entry;
+    }
+    else{
+      lastentry->next = entry;
+      lastentry = entry;
+    }
+    token temp = idlist->next;
+    free(idlist);
+    idlist = temp;
+  }
+  token retval = talloc();
+  symentry enumentry = symentry_alloc();
+  enumentry->etype = ENUM_ENTRY;
+  enumentry->type = firstentry;
+  retval->entry = enumentry;
+  return retval; 
+}
+
+token parse_subrangetype(token filltok, token lowbound, token highbound){return NULL;}
+token parse_newstructuredtype(token typetok, token packed){return NULL;}
+token parse_arraytype(token indicies, token typetok){return NULL;}
+token parse_fieldlist(token fixed, token variant){return NULL;}
+token parse_recordsection(token idlist, token typedenoter){return NULL;}
+
+void parse_typedefinition(token id, token def){
+  symentry typeentry = symentry_alloc();
+  typeentry->name = id->strval;
+  typeentry->type = def->entry;
+  symtab_add(top_symtab, typeentry);
+}
+
+
 token parse_constant(token sign, token constant){
   if(!sign){
     return constant;
@@ -960,7 +1009,7 @@ void parse_constantdefinition(token id, token constant){
   printf("Adding constant %s to symtab\n", id->strval);
   symentry constentry = symentry_alloc();
   constentry->name = id->strval;
-  constentry->etype = CONST_TYPE;
+  constentry->etype = CONST_ENTRY;
   constentry->intval = constant->intval;
   constentry->realval = constant->realval;
   constentry->strval = constant->strval;
@@ -970,22 +1019,22 @@ void parse_constantdefinition(token id, token constant){
   free(constant);
 }
 
-token const_lookup(token id){
+token lookup(token id, entrytype t){
   printf("id is %s\n", id->strval);
-  symentry constentry = symtab_get(top_symtab, id->strval);
-  if(!constentry){
-    printf("No id %s declared\n", id->strval);
+  symentry entry = symtab_get(top_symtab, id->strval);
+  if(!entry){
+    printf("No entry %s declared\n", id->strval);
     exit(1);
   }
-  if(constentry->etype != CONST_TYPE){
-    printf("%s is not a constant\n", id->strval);
+  if(entry->etype != t){
+    printf("%s is not the desired type of entry %d\n", id->strval, t);
     exit(1);
   }
-  id->intval = constentry->intval;
-  id->realval = constentry->realval;
-  id->strval = constentry->strval;
-  id->entry = constentry;
-  id->type_sym = constentry->type;
+  id->intval = entry->intval;
+  id->realval = entry->realval;
+  id->strval = entry->strval;
+  id->entry = entry;
+  id->type_sym = entry->type;
   return id;
 }
 
@@ -1003,7 +1052,7 @@ void parse_label(token label){
   }
   free(label);
   symentry label_entry = symentry_alloc();
-  label_entry->etype = LABEL_TYPE;
+  label_entry->etype = LABEL_ENTRY;
   label_entry->name = label_name;
   symtab_add(top_symtab, label_entry);
 }
@@ -1039,6 +1088,10 @@ void init_symtab(void){
   realentry->name = "real";
   boolentry->name = "Boolean";
   charentry->name = "char";
+  intentry->etype = TYPE_ENTRY;
+  realentry->etype = TYPE_ENTRY;
+  boolentry->etype = TYPE_ENTRY;
+  charentry->etype = TYPE_ENTRY;
   symtab_add(top_symtab, intentry);
   symtab_add(top_symtab, realentry);
   symtab_add(top_symtab, boolentry);

@@ -52,3 +52,4 @@ token cleartok(token t);
 token inittok(toktype type, enum yytokentype specval, int intval, double realval, char* strval);
 void debugtoken(token tok);
 void tokentest(token tok);
+void token_append(token tok1, token tok2);

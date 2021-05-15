@@ -18,8 +18,11 @@
 */
 
 typedef enum entrytype{
-  LABEL_TYPE,
-  CONST_TYPE
+  LABEL_ENTRY,
+  ID_ENTRY,
+  CONST_ENTRY,
+  TYPE_ENTRY,
+  ENUM_ENTRY
 } entrytype;
 
 typedef struct tableentry{

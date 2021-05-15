@@ -64,3 +64,16 @@ void tokentest(token tok){
   printf("leaf: %p\n", tok->leaf);
   printf("next: %p\n", tok->next);
 }
+
+void token_append(token tok1, token tok2){
+  if(!tok1){
+    return;
+  }
+  token index = tok1;
+  token end = NULL;
+  while(index){
+    end = index;
+    index = index->next;
+  }
+  end->next = tok2;
+}
