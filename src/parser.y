@@ -946,21 +946,13 @@ programblock:
 %%
 
 token parse_enumeratedtype(token idlist){
-  symentry firstentry = NULL;
-  symentry lastentry = NULL;
-  for(int i = 0; idlist; i++){
+  int i = 0;
+  for(; idlist; i++){
     symentry entry = symentry_alloc();
     entry->name = idlist->strval;
     entry->etype = CONST_ENTRY;
     entry->intval = i;
-    if(!i){
-      firstentry = entry;
-      lastentry = entry;
-    }
-    else{
-      lastentry->next = entry;
-      lastentry = entry;
-    }
+    symtab_add(top_symtab, entry);
     token temp = idlist->next;
     free(idlist);
     idlist = temp;
@@ -968,12 +960,23 @@ token parse_enumeratedtype(token idlist){
   token retval = talloc();
   symentry enumentry = symentry_alloc();
   enumentry->etype = ENUM_ENTRY;
-  enumentry->type = firstentry;
+  enumentry->size = i;
   retval->entry = enumentry;
   return retval; 
 }
 
-token parse_subrangetype(token filltok, token lowbound, token highbound){return NULL;}
+token parse_subrangetype(token filltok, token lowbound, token highbound){
+  symentry entry = symentry_alloc();
+  entry->etype = SUBRANGE_ENTRY;
+  entry->offset = lowbound->intval;
+  entry->size = highbound->intval - lowbound->intval;
+  cleartok(filltok);
+  filltok->entry = entry;
+  free(lowbound);
+  free(highbound);
+  return filltok;
+}
+
 token parse_newstructuredtype(token typetok, token packed){return NULL;}
 token parse_arraytype(token indicies, token typetok){return NULL;}
 token parse_fieldlist(token fixed, token variant){return NULL;}
