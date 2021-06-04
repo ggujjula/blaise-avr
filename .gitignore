@@ -1,6 +1,7 @@
 *.swp
 src/lexer.c
 src/parser.c
+src/parser.h
 src/lexer
 src/parser
 src/codegen
