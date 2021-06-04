@@ -69,13 +69,14 @@ install:
 
 clean:
 	rm ./*
+	rm $(srcdir)/lexer.c $(srcdir)/lexer.h $(srcdir)/parser.c $(srcdir)/parser.h
 	cp ../Makefile.in ./Makefile
 	cp ../test.pas ./
 
-$(srcdir)/lexer.c: $(srcdir)/lexer.l
-	$(FLEX) $(FLEXFLAGS) -o $(srcdir)/lexer.c $(srcdir)/lexer.l
+$(srcdir)/lexer.c $(srcdir)/lexer.h: $(srcdir)/lexer.l
+	$(FLEX) $(FLEXFLAGS) --header-file=$(srcdir)/lexer.h -o $(srcdir)/lexer.c $(srcdir)/lexer.l
 
-$(srcdir)/parser.h $(srcdir)/parser.c: $(srcdir)/parser.y
+$(srcdir)/parser.c $(srcdir)/parser.h: $(srcdir)/parser.y
 	$(BISON) $(BISONFLAGS) -d -o $(srcdir)/parser.c $(srcdir)/parser.y
 
 lexer: lexerdriver.o lexer.o token.o
@@ -96,7 +97,7 @@ lexertester: lexertester.o lexer.o token.o
 %.S:: $(srcdir)/%.c
 	$(CC) $(ALL_CFLAGS) -S $< -o $@
 
-%.o:: $(srcdir)/%.c $(srcdir)/parser.h
+%.o:: $(srcdir)/%.c $(srcdir)/parser.h $(srcdir)/lexer.h
 	$(CC) $(ALL_CFLAGS) -c $< -o $@
 
 %: %.o
