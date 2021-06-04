@@ -16,12 +16,19 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-%{
+%code requires {
+  
+enum yytokentype;
+#include "token.h"
+
+}
+%code {
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "token.h"
 #include "lexer.h"
+#include "symtab.h"
 
 //#define YYSTYPE token
 
@@ -44,9 +51,9 @@ void parse_label(token label);
 int yyerror(const char * err);
 void init_symtab(void);
 void init_parsetree(void);
-%}
 
-//%code requires {#include "token.h"}
+}
+%defines
 %define api.value.type {token}
 %define parse.trace
 

@@ -16,6 +16,13 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+#ifndef BLAISE_AVR_TOKEN_H
+#define BLAISE_AVR_TOKEN_H
+
+struct tokenstruct;
+typedef struct tokenstruct* token;
+
+#include "parser.h"
 #include "symtab.h"
 
 typedef char toktype;
@@ -31,11 +38,6 @@ struct tokenstruct {
   struct tokenstruct* leaf;
   struct tokenstruct* next;
 };
-
-typedef struct tokenstruct* token;
-//typedef token YYSTYPE;
-
-#include "parser.h"
 
 #define TYPE_CLEAR  0
 #define TYPE_SPEC   1
@@ -53,3 +55,5 @@ token inittok(toktype type, enum yytokentype specval, int intval, double realval
 void debugtoken(token tok);
 void tokentest(token tok);
 void token_append(token tok1, token tok2);
+
+#endif

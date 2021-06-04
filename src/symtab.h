@@ -16,6 +16,8 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+#ifndef BLAISE_AVR_SYMTAB_H
+#define BLAISE_AVR_SYMTAB_H
 
 typedef enum entrytype{
   LABEL_ENTRY,
@@ -54,3 +56,5 @@ symtab symtab_push(symtab parent);
 symtab symtab_pop(symtab child);
 void symtab_add(symtab tab, symentry entry);
 symentry symtab_get(symtab tab, char *name);
+
+#endif
