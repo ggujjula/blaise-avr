@@ -20,12 +20,14 @@
 #define BLAISE_AVR_SYMTAB_H
 
 typedef enum entrytype{
+  INVALID_ENTRY,
   LABEL_ENTRY,
   ID_ENTRY,
   CONST_ENTRY,
   TYPE_ENTRY,
   ENUM_ENTRY,
-  SUBRANGE_ENTRY
+  SUBRANGE_ENTRY,
+  ARRAY_ENTRY
 } entrytype;
 
 typedef struct tableentry{
@@ -37,6 +39,8 @@ typedef struct tableentry{
   int intval;
   double realval;
   char* strval;
+  int low;
+  int high;
   struct tableentry *type;
   struct tableentry *next;
 } tableentry;

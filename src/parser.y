@@ -16,6 +16,8 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+%{
+%}
 %require "3.5.1"
 
 %defines
@@ -980,8 +982,38 @@ token parse_subrangetype(token filltok, token lowbound, token highbound){
   return filltok;
 }
 
-token parse_newstructuredtype(token typetok, token packed){return NULL;}
-token parse_arraytype(token indicies, token typetok){return NULL;}
+token parse_newstructuredtype(token typetok, token packed){
+  free(packed);
+  return typetok;
+}
+
+token parse_arraytype(token indicies, token typetok){
+  token retval = talloc();
+  if(!indicies->next){
+    //Process typtok
+    symentry entry = symentry_alloc();
+    entry->etype = ARRAY_ENTRY;
+    entry->size = (indicies->entry->high - indicies->entry->low + 1) * typetok->entry->size;
+    entry->low = indicies->entry->low;
+    entry->high = indicies->entry->high;
+    entry->type = typetok->entry;
+    retval->entry = entry;
+    retval->type_sym = entry->type;
+  }
+  else{
+    token recursereturn = parse_arraytype(indicies->next, typetok);
+    symentry entry = symentry_alloc();
+    entry->etype = ARRAY_ENTRY;
+    entry->size = (indicies->entry->high - indicies->entry->low + 1) * recursereturn->entry->size;
+    entry->low = indicies->entry->low;
+    entry->high = indicies->entry->high;
+    entry->type = recursereturn->entry;
+    retval->entry = entry;
+    retval->type_sym = entry->type;
+  }
+  return retval;
+}
+
 token parse_fieldlist(token fixed, token variant){return NULL;}
 token parse_recordsection(token idlist, token typedenoter){return NULL;}
 

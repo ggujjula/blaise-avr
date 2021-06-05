@@ -11,7 +11,7 @@ token talloc(){
 
 token cleartok(token t){
   t->type = TYPE_CLEAR;
-  //t->specval = PLUS;
+  t->specval = -1;
   t->intval = 0;
   t->realval = 0.0;
   t->strval = NULL;
@@ -23,7 +23,7 @@ token cleartok(token t){
 token inittok(toktype type, enum yytokentype specval, int intval, double realval, char* strval){
   token t = malloc(sizeof(struct tokenstruct));
   t->type = type;
-  //t->specval = specval;
+  t->specval = specval;
   t->intval = intval;
   t->realval = realval;
   size_t strsize = strlen(strval);
