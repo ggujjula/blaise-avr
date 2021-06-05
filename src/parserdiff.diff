@@ -1,7 +1,0 @@
-118a119,120
-> #include "token.h"
-> 
-121c123
-< typedef int YYSTYPE;
----
-> typedef token YYSTYPE;
