@@ -45,6 +45,7 @@ token parse_newstructuredtype(token typetok, token packed);
 token parse_arraytype(token indicies, token typetok);
 token parse_fieldlist(token fixed, token variant);
 token parse_recordsection(token idlist, token typedenoter);
+token parse_settype(token basetype, token fill);
 token lookup(token id, entrytype t);
 token parse_programheading(token prog, token id, token paramlist);
 void parse_label(token label);
@@ -350,13 +351,7 @@ fixedpart:
   recordsection
 | recordsection SEMICOLON recordsection {
     free($2);
-    token index = $1;
-    token end = NULL;
-    while(index){
-      end = index;
-      index = index->next;
-    }
-    end->next = $3;
+    token_append($1, $3);
     $$ = $1; 
   }
 ;
@@ -445,8 +440,7 @@ caseconstant:
 settype:
   SET OF basetype{
     free($1);
-    free($2);
-    $$ = $3;
+    $$ = parse_settype($3, $2);
   }
 ;
 
@@ -1014,8 +1008,44 @@ token parse_arraytype(token indicies, token typetok){
   return retval;
 }
 
-token parse_fieldlist(token fixed, token variant){return NULL;}
-token parse_recordsection(token idlist, token typedenoter){return NULL;}
+token parse_fieldlist(token fixed, token variant){
+  return NULL;
+}
+
+token parse_recordsection(token idlist, token typedenoter){
+  symentry arglist = NULL;
+  symentry arglistend = NULL;
+  while(idlist){
+    if(arglist){
+      arglistend->next = symentry_alloc();
+      arglistend = arglistend->next;
+    }
+    else{
+      arglist = arglistend = symentry_alloc();
+    }
+    arglistend->name = idlist->strval;
+    arglistend->size = typedenoter->entry->size;
+    arglistend->type = typedenoter->entry;
+    token tmp = idlist->next;
+    free(idlist);
+    idlist = tmp;
+  }
+  cleartok(typedenoter);
+  typedenoter->entry = arglist;
+  return typedenoter;
+}
+
+token parse_settype(token basetype, token fill){
+  symentry setentry = symentry_alloc();
+  setentry->etype = SET_ENTRY;
+  setentry->size = basetype->entry->size;
+  setentry->type = basetype->entry;
+  cleartok(fill);
+  fill->entry = setentry;
+  fill->type_sym = setentry->type;
+  return fill;
+}
+
 
 void parse_typedefinition(token id, token def){
   symentry typeentry = symentry_alloc();
