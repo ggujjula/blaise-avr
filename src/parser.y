@@ -17,12 +17,12 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 %require "3.5.1"
-%code requires {
-  
-enum yytokentype;
-#include "token.h"
 
-}
+%defines
+//%define api.value.type {token}
+%define api.header.include {"parser.h"}
+%define parse.trace
+
 %code {
 
 #include <stdio.h>
@@ -30,8 +30,6 @@ enum yytokentype;
 #include <string.h>
 #include "lexer.h"
 #include "symtab.h"
-
-//#define YYSTYPE token
 
 static symtab top_symtab;
 static token parsetree;
@@ -54,9 +52,6 @@ void init_symtab(void);
 void init_parsetree(void);
 
 }
-%defines
-%define api.value.type {token}
-%define parse.trace
 
 %token PLUS MINUS MULT DIVIDE EQ LT GT LBRACKET RBRACKET DOT COMMA COLON 
 %token SEMICOLON POINT LPAREN RPAREN DIAMOND LTE GTE ASSIGN DOTDOT AND ARRAY 

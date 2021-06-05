@@ -29,7 +29,7 @@ typedef char toktype;
 
 struct tokenstruct {
   toktype type;
-  //enum yytokentype specval;
+  enum yytokentype specval;
   int intval;
   double realval;
   char* strval;

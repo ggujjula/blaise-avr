@@ -69,7 +69,7 @@ install:
 
 clean:
 	rm ./*
-	rm $(srcdir)/lexer.c $(srcdir)/lexer.h $(srcdir)/parser.c $(srcdir)/parser.h
+	rm -f $(srcdir)/lexer.c $(srcdir)/lexer.h $(srcdir)/parser.c $(srcdir)/parser.h
 	cp ../Makefile.in ./Makefile
 	cp ../test.pas ./
 
@@ -78,6 +78,7 @@ $(srcdir)/lexer.c $(srcdir)/lexer.h: $(srcdir)/lexer.l
 
 $(srcdir)/parser.c $(srcdir)/parser.h: $(srcdir)/parser.y
 	$(BISON) $(BISONFLAGS) -d -o $(srcdir)/parser.c $(srcdir)/parser.y
+	patch -r - $(srcdir)/parser.h $(srcdir)/parserdiff.diff
 
 lexer: lexerdriver.o lexer.o token.o
 	$(CC) $(ALL_CFLAGS) -o lexer $^
