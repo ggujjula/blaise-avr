@@ -28,7 +28,8 @@ typedef enum entrytype{
   ENUM_ENTRY,
   SUBRANGE_ENTRY,
   ARRAY_ENTRY,
-  SET_ENTRY
+  SET_ENTRY,
+  POINT_ENTRY
 } entrytype;
 
 typedef struct tableentry{

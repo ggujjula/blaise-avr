@@ -36,6 +36,9 @@
 static symtab top_symtab;
 static token parsetree;
 
+token lookup(token id, entrytype t);
+token parse_programheading(token prog, token id, token paramlist);
+void parse_label(token label);
 token parse_constant(token sign, token constant);
 void parse_constantdefinition(token id, token constant);
 void parse_typedefinition(token id, token def);
@@ -46,9 +49,7 @@ token parse_arraytype(token indicies, token typetok);
 token parse_fieldlist(token fixed, token variant);
 token parse_recordsection(token idlist, token typedenoter);
 token parse_settype(token basetype, token fill);
-token lookup(token id, entrytype t);
-token parse_programheading(token prog, token id, token paramlist);
-void parse_label(token label);
+token parse_pointertype(token domaintype);
 
 int yyerror(const char * err);
 void init_symtab(void);
@@ -457,8 +458,12 @@ filetype:
 ;
 
 pointertype:
-  newpointertype
-| pointertypeid
+  newpointertype {
+    $$ = parse_pointertype($1);
+  }
+| pointertypeid {
+    $$ = parse_pointertype($1);
+  }
 ;
 
 newpointertype:
@@ -943,6 +948,16 @@ programblock:
   block
 ;
 %%
+
+token parse_pointertype(token basetype){
+  symentry pointentry = symentry_alloc();
+  pointentry->etype = POINT_ENTRY;
+  pointentry->size = 8;
+  pointentry->type = $1->type_sym;
+  $1 = cleartok($1);
+  $1->type_sym = pointentry;
+  $$ = $1;
+}
 
 token parse_enumeratedtype(token idlist){
   int i = 0;
