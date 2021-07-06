@@ -3,6 +3,9 @@
 #include <string.h>
 #include "token.h"
 
+static int debugtreeindent = 0;
+static token debugtreeroot = NULL;
+
 token talloc(){
   token t = malloc(sizeof(struct tokenstruct));
   cleartok(t);
@@ -35,26 +38,38 @@ token inittok(toktype type, enum yytokentype specval, int intval, double realval
   return t;
 }
 
-void debugtoken(token tok){
-  printf("\n-----DEBUG TOKEN-----\n");
-  printf("Type: %x\n", tok->type);
-  printf("intval: %x\n", tok->intval);
-  printf("realval: %f\n", tok->realval);
-  printf("strval: %s\n", tok->strval);
-  printf("entry: %p\n", tok->entry);
-  printf("type_sym: %p\n", tok->type_sym);
-  printf("leaf: %p\n", tok->leaf);
-  printf("next: %p\n", tok->next);
-  printf("-----END DEBUG TOKEN-----\n");
+void debugtokentree(token tok){
+  if(tok){
+    if(!debugtreeroot){
+      debugtreeroot = tok;
+    }
+    printf("\n");
+    for(int i = 0; i < debugtreeindent; i++){
+      printf(" ");
+    }
+    printf("{ %d:%s ", tok->type, tok->strval);
+    if(tok->leaf){
+      debugtreeindent++;
+      debugtokentree(tok->leaf); 
+      debugtreeindent--;
+    }
+    printf("}");
+    debugtokentree(tok->next); 
+    if(debugtreeroot == tok){
+      printf("\n");
+      debugtreeroot = NULL;
+    }
+  }
 }
 
-void tokentest(token tok){
+void debugtoken(token tok){
   union debugunion{
     double input;
     unsigned long output;
   };
   union debugunion dbu;
   dbu.input = tok->realval;
+  printf("\n-----DEBUG TOKEN-----\n");
   printf("Type: %x\n", tok->type);
   printf("intval: %x\n", tok->intval);
   printf("realval: %lx\n", dbu.output);
@@ -63,6 +78,7 @@ void tokentest(token tok){
   printf("type_sym: %p\n", tok->type_sym);
   printf("leaf: %p\n", tok->leaf);
   printf("next: %p\n", tok->next);
+  printf("-----END DEBUG TOKEN-----\n");
 }
 
 void token_append(token tok1, token tok2){

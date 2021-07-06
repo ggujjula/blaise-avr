@@ -108,38 +108,51 @@ block:
 */
 //Temp block definition to allow for segmenting of development
 block:
-  {$$ = NULL; top_symtab = symtab_push(top_symtab);}
+  {top_symtab = symtab_push(top_symtab);}
   labeldeclarationpart constantdefinitionpart typedefinitionpart
   statementpart {
     top_symtab = symtab_pop(top_symtab);
-    $$ = $1;
+    token tokholder = talloc();
+    if($1)
+      token_append(tokholder, $1);
+    if($2)
+      token_append(tokholder, $2);
+    if($3)
+      token_append(tokholder, $3);
+    if($4)
+      token_append(tokholder, $4);
+    $$ = tokholder->next;
+    free(tokholder);
   }
 ;
 labeldeclarationpart:
   LABEL addlabel SEMICOLON {
     free($1);
     free($3);
-    $$ = NULL;
+    $$ = $2;
   }
+| {$$ = NULL;}
 ;
 
 addlabel:
   label {
     parse_label($1);
-    $$ = NULL;
+    $$ = $1;
   }
 | addlabel COMMA label {
     parse_label($3); 
     free($2);
-    $$ = NULL;
+    token_append($1, $3);
+    $$ = $1;
   }
 ;
 
 constantdefinitionpart:
   CONST constantdefinition {
     free($1);
-    $$ = NULL;
+    $$ = $2;
   }
+| {$$ = NULL;}
 ;
 
 constantdefinition:
@@ -147,13 +160,14 @@ constantdefinition:
     parse_constantdefinition($1, $3);
     free($2);
     free($4);
-    $$ = NULL;
+    $$ = $1;
   }
 | constantdefinition ID EQ constant SEMICOLON {
     parse_constantdefinition($2, $4);
     free($3);
     free($5);
-    $$ = NULL;
+    token_append($1, $2);
+    $$ = $1;
   }
 ;
 
@@ -179,6 +193,7 @@ typedefinitionpart:
     free($1);
     $$ = NULL;
   }
+| {$$ = NULL;}
 ;
 
 typedefinition:
@@ -922,10 +937,12 @@ writeparameterext2:
 */
 program:
   programheading SEMICOLON programblock DOT {
+    //printf("%p\n", $3);
+    //debugtokentree($3);
     $1->leaf = $3;
-    parsetree = $1;
     free($2);
     free($4);
+    parsetree = $1;
   }
 ;
 
@@ -953,10 +970,10 @@ token parse_pointertype(token basetype){
   symentry pointentry = symentry_alloc();
   pointentry->etype = POINT_ENTRY;
   pointentry->size = 8;
-  pointentry->type = $1->type_sym;
-  $1 = cleartok($1);
-  $1->type_sym = pointentry;
-  $$ = $1;
+  pointentry->type = basetype->type_sym;
+  basetype= cleartok(basetype);
+  basetype->type_sym = pointentry;
+  return basetype;
 }
 
 token parse_enumeratedtype(token idlist){
@@ -1157,7 +1174,9 @@ int main(void){
   yydebug = 1;
   init_symtab(); 
   init_parsetree();
-  yyparse();
+  if(!yyparse()){
+    debugtokentree(parsetree);
+  }
   return 0;
 }
 
