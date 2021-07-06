@@ -16,10 +16,20 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+#ifndef BLAISE_AVR_SYMTAB_H
+#define BLAISE_AVR_SYMTAB_H
 
 typedef enum entrytype{
-  LABEL_TYPE,
-  CONST_TYPE
+  INVALID_ENTRY,
+  LABEL_ENTRY,
+  ID_ENTRY,
+  CONST_ENTRY,
+  TYPE_ENTRY,
+  ENUM_ENTRY,
+  SUBRANGE_ENTRY,
+  ARRAY_ENTRY,
+  SET_ENTRY,
+  POINT_ENTRY
 } entrytype;
 
 typedef struct tableentry{
@@ -31,6 +41,8 @@ typedef struct tableentry{
   int intval;
   double realval;
   char* strval;
+  int low;
+  int high;
   struct tableentry *type;
   struct tableentry *next;
 } tableentry;
@@ -50,3 +62,5 @@ symtab symtab_push(symtab parent);
 symtab symtab_pop(symtab child);
 void symtab_add(symtab tab, symentry entry);
 symentry symtab_get(symtab tab, char *name);
+
+#endif

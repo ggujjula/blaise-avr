@@ -13,7 +13,14 @@ symtab symtab_alloc(void){
 symentry symentry_alloc(void){
   symentry retval = malloc(sizeof(tableentry));
   retval->name = NULL;
+  retval->etype = INVALID_ENTRY;
   retval->size = -1;
+  retval->offset = -1;
+  retval->intval = 0;
+  retval->realval = 0.0;
+  retval->strval = NULL;
+  retval->low = -1;
+  retval->high = -1;
   retval->type = NULL;
   retval->next = NULL;
   return retval;

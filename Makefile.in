@@ -57,7 +57,7 @@ CFLAGS = -Wall -Werror -g
 LDFLAGS = 
 ALL_CFLAGS = -I$(srcdir) $(CFLAGS)
 BISONFLAGS = -Wall
-FLEXFLAGS =
+FLEXFLAGS = -Ca
 
 all: lexer parser codegen blaise-avr
 
@@ -69,14 +69,16 @@ install:
 
 clean:
 	rm ./*
+	rm -f $(srcdir)/lexer.c $(srcdir)/lexer.h $(srcdir)/parser.c $(srcdir)/parser.h
 	cp ../Makefile.in ./Makefile
 	cp ../test.pas ./
 
-$(srcdir)/lexer.c: $(srcdir)/lexer.l
-	$(FLEX) $(FLEXFLAGS) -o $(srcdir)/lexer.c $(srcdir)/lexer.l
+$(srcdir)/lexer.c $(srcdir)/lexer.h: $(srcdir)/lexer.l
+	$(FLEX) $(FLEXFLAGS) --header-file=$(srcdir)/lexer.h -o $(srcdir)/lexer.c $(srcdir)/lexer.l
 
-$(srcdir)/parser.h $(srcdir)/parser.c: $(srcdir)/parser.y
+$(srcdir)/parser.c $(srcdir)/parser.h: $(srcdir)/parser.y
 	$(BISON) $(BISONFLAGS) -d -o $(srcdir)/parser.c $(srcdir)/parser.y
+	sed -i -n -f $(srcdir)/addtoken.sed $(srcdir)/parser.h
 
 lexer: lexerdriver.o lexer.o token.o
 	$(CC) $(ALL_CFLAGS) -o lexer $^
@@ -96,7 +98,7 @@ lexertester: lexertester.o lexer.o token.o
 %.S:: $(srcdir)/%.c
 	$(CC) $(ALL_CFLAGS) -S $< -o $@
 
-%.o:: $(srcdir)/%.c $(srcdir)/parser.h
+%.o:: $(srcdir)/%.c $(srcdir)/parser.h $(srcdir)/lexer.h
 	$(CC) $(ALL_CFLAGS) -c $< -o $@
 
 %: %.o
