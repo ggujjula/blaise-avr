@@ -5,6 +5,16 @@
 
 static int debugtreeindent = 0;
 static token debugtreeroot = NULL;
+static const int debugtableoffset = (int)(PLUS);
+//static const int debugtablesize = (int)(STR) - (int)(PLUS);
+static const char* debugtable[] = {
+  "+", "-", "*", "/", "=", "<", ">", "{", "}", ".", ",", ":", ";", "^", "(", ")",
+  "<>", "<=", ">=", ":=", "..", "AND", "ARRAY", "PASBEGIN", "CASE", "CONST", "DIV",
+  "DO", "DOWNTO", "ELSE", "END", "PASFILE", "FOR", "FUNC", "GOTO", "IF", "IN",
+  "LABEL", "MOD", "NIL", "NOT", "OF", "OR", "PACKED", "PROC", "PROG", "RECORD",
+  "REPEAT", "SET", "THEN", "TO", "TYPE", "UNTIL", "VAR", "WHILE", "WITH", "ID",
+  "PASDIR", "SIGNED_REAL", "UNSIGNED_REAL", "SIGNED_INT", "UNSIGNED_INT",
+  "LABELNUM", "STR" };
 
 token talloc(){
   token t = malloc(sizeof(struct tokenstruct));
@@ -40,6 +50,13 @@ token inittok(toktype type, enum yytokentype specval, int intval, double realval
 
 void debugtokentree(token tok){
   if(tok){
+    if(tok->specval < PLUS ||
+        tok->specval > STR ||
+        tok->type < TYPE_SPEC ||
+        tok->type > TYPE_STR){
+      printf("INVALID ");
+      return;
+    }
     if(!debugtreeroot){
       debugtreeroot = tok;
     }
@@ -47,7 +64,22 @@ void debugtokentree(token tok){
     for(int i = 0; i < debugtreeindent; i++){
       printf(" ");
     }
-    printf("{ %d:%s ", tok->type, tok->strval);
+    printf("{ %s", debugtable[(int)(tok->specval) - debugtableoffset]);
+    switch(tok->type){
+      case TYPE_ID:
+        printf(":%s ", tok->strval);
+        break;
+      case TYPE_STR:
+        printf(":\"%s \"", tok->strval);
+        break;
+      case TYPE_NUM:
+      case TYPE_LABEL:
+        printf(":%x ", tok->intval);
+        break;
+      default:
+        printf(" ");
+        break;
+    }
     if(tok->leaf){
       debugtreeindent++;
       debugtokentree(tok->leaf); 
