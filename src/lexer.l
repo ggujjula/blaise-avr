@@ -24,8 +24,6 @@
 %{
 #include <math.h> 
 #include "token.h"
-
-YYSTYPE yylval;
 %}
 
 %option nounput
