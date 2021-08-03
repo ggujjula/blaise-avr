@@ -1,13 +1,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "parser.h"
 #include "token.h"
 
 static int debugtreeindent = 0;
 static token debugtreeroot = NULL;
-static const int debugtableoffset = (int)(PLUS);
+//static const int debugtableoffset = (int)(PLUS);
 //static const int debugtablesize = (int)(STR) - (int)(PLUS);
-static const char* debugtable[] = {
+/*static const char* debugtable[] = {
   "+", "-", "*", "/", "=", "<", ">", "{", "}", ".", ",", ":", ";", "^", "(", ")",
   "<>", "<=", ">=", ":=", "..", "AND", "ARRAY", "PASBEGIN", "CASE", "CONST", "DIV",
   "DO", "DOWNTO", "ELSE", "END", "PASFILE", "FOR", "FUNC", "GOTO", "IF", "IN",
@@ -15,7 +16,7 @@ static const char* debugtable[] = {
   "REPEAT", "SET", "THEN", "TO", "TYPE", "UNTIL", "VAR", "WHILE", "WITH", "ID",
   "PASDIR", "SIGNED_REAL", "UNSIGNED_REAL", "SIGNED_INT", "UNSIGNED_INT",
   "LABELNUM", "STR" };
-
+*/
 token talloc(){
   token t = malloc(sizeof(struct tokenstruct));
   cleartok(t);
@@ -24,7 +25,7 @@ token talloc(){
 
 token cleartok(token t){
   t->type = TYPE_CLEAR;
-  t->specval = -1;
+//  t->specval = -1;
   t->intval = 0;
   t->realval = 0.0;
   t->strval = NULL;
@@ -33,10 +34,11 @@ token cleartok(token t){
   return t;
 }
 
-token inittok(toktype type, enum yytokentype specval, int intval, double realval, char* strval){
+//token inittok(toktype type, enum yytokentype specval, int intval, double realval, char* strval){
+token inittok(toktype type, int intval, double realval, char* strval){
   token t = malloc(sizeof(struct tokenstruct));
   t->type = type;
-  t->specval = specval;
+//  t->specval = specval;
   t->intval = intval;
   t->realval = realval;
   size_t strsize = strlen(strval);
@@ -50,8 +52,8 @@ token inittok(toktype type, enum yytokentype specval, int intval, double realval
 
 void debugtokentree(token tok){
   if(tok){
-    if(tok->specval < PLUS ||
-        tok->specval > STR ||
+    if(//tok->specval < PLUS ||
+        //tok->specval > STR ||
         tok->type < TYPE_SPEC ||
         tok->type > TYPE_STR){
       printf("INVALID ");
@@ -64,7 +66,7 @@ void debugtokentree(token tok){
     for(int i = 0; i < debugtreeindent; i++){
       printf(" ");
     }
-    printf("{ %s", debugtable[(int)(tok->specval) - debugtableoffset]);
+    //printf("{ %s", debugtable[(int)(tok->specval) - debugtableoffset]);
     switch(tok->type){
       case TYPE_ID:
         printf(":%s ", tok->strval);

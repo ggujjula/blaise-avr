@@ -18,10 +18,14 @@
 */
 %{
 %}
-%require "3.5.1"
+%require "3.7.6"
+
+%code requires {
+    #include "token.h"
+}
 
 %defines
-//%define api.value.type {token}
+%define api.value.type {token}
 %define api.header.include {"parser.h"}
 %define parse.trace
 
