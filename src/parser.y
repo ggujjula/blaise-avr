@@ -24,6 +24,7 @@
     #include "token.h"
 }
 
+%token-table
 %defines
 %define api.value.type {token}
 %define api.header.include {"parser.h"}
