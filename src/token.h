@@ -19,17 +19,13 @@
 #ifndef BLAISE_AVR_TOKEN_H
 #define BLAISE_AVR_TOKEN_H
 
-struct tokenstruct;
-typedef struct tokenstruct* token;
-
-#include "parser.h"
 #include "symtab.h"
 
 typedef char toktype;
 
 struct tokenstruct {
   toktype type;
-  enum yytokentype specval;
+  int specval;
   int intval;
   double realval;
   char* strval;
@@ -38,6 +34,8 @@ struct tokenstruct {
   struct tokenstruct* leaf;
   struct tokenstruct* next;
 };
+typedef struct tokenstruct* token;
+
 
 #define TYPE_CLEAR  0
 #define TYPE_SPEC   1
@@ -51,7 +49,7 @@ struct tokenstruct {
 
 token talloc();
 token cleartok(token t);
-token inittok(toktype type, enum yytokentype specval, int intval, double realval, char* strval);
+token inittok(toktype type, int specval, int intval, double realval, char* strval);
 void debugtoken(token tok);
 void debugtokentree(token tok);
 void tokentest(token tok);

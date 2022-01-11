@@ -1,5 +1,5 @@
 /*
-<desc>
+  symtab.h - Symbol table definitions
 
   Copyright (C) 2021 <name> 
 

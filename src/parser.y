@@ -1,5 +1,5 @@
 /*
-<desc>
+  parser.y - Parser for Unextended Pascal programs
 
   Copyright (C) 2021 <name> 
 
@@ -18,10 +18,15 @@
 */
 %{
 %}
-%require "3.5.1"
+%require "3.7.6"
 
+%code requires {
+    #include "token.h"
+}
+
+%token-table
 %defines
-//%define api.value.type {token}
+%define api.value.type {token}
 %define api.header.include {"parser.h"}
 %define parse.trace
 
@@ -31,7 +36,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "lexer.h"
-#include "symtab.h"
 
 static symtab top_symtab;
 static token parsetree;
@@ -113,14 +117,14 @@ block:
   statementpart {
     top_symtab = symtab_pop(top_symtab);
     token tokholder = talloc();
-    if($1)
-      token_append(tokholder, $1);
     if($2)
       token_append(tokholder, $2);
     if($3)
       token_append(tokholder, $3);
     if($4)
       token_append(tokholder, $4);
+    if($5)
+      token_append(tokholder, $5);
     $$ = tokholder->next;
     free(tokholder);
   }
@@ -160,6 +164,7 @@ constantdefinition:
     parse_constantdefinition($1, $3);
     free($2);
     free($4);
+    $1->leaf = $3;
     $$ = $1;
   }
 | constantdefinition ID EQ constant SEMICOLON {
@@ -1115,8 +1120,6 @@ void parse_constantdefinition(token id, token constant){
   constentry->strval = constant->strval;
   constentry->type = constant->type_sym;
   symtab_add(top_symtab, constentry);
-  free(id);
-  free(constant);
 }
 
 token lookup(token id, entrytype t){
@@ -1150,7 +1153,6 @@ void parse_label(token label){
     printf("Repeated label number: %s\n", label_name);
     exit(1);
   }
-  free(label);
   symentry label_entry = symentry_alloc();
   label_entry->etype = LABEL_ENTRY;
   label_entry->name = label_name;
@@ -1171,7 +1173,7 @@ int yyerror(const char * err){
 }
 
 int main(void){
-  yydebug = 1;
+  yydebug = 0;
   init_symtab(); 
   init_parsetree();
   if(!yyparse()){
