@@ -13,9 +13,24 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Build bison
+      run: pushd ~;
+            export BASEDIR=$(pwd);
+            wget -nv http://ftpmirror.gnu.org/bison/bison-3.8.2.tar.xz;
+            tar -xf bison-3.8.2.tar.xz;
+            cd bison-3.8.2;
+            ./configure --prefix=$BASEDIR/bisoninstall;
+            make --quiet -j;
+            make --quiet install;
+            cd ..;
+            rm -rf bison-3.8.2 bison-3.8.2.tar.xz;
+            popd
     - name: Create build dir
       run: mkdir build/
-    - name: configure
+    - name: Configure
       run: cd build/; pwd; ../configure
-    - name: make -j
-      run: cd build/; make -j
+    - name: Make
+      run: pushd ~;
+            export PATH=$(pwd)/bisoninstall/bin:$PATH;
+            popd;
+            echo $PATH; cd build/; make -j
