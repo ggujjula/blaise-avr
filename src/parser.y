@@ -26,6 +26,7 @@
 
 %token-table
 %defines
+%define api.pure full
 %define api.value.type {token}
 %define api.header.include {"parser.h"}
 %define parse.trace
