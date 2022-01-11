@@ -34,8 +34,7 @@ token cleartok(token t){
   return t;
 }
 
-token inittok(toktype type, enum yytokentype specval, int intval, double realval, char* strval){
-//token inittok(toktype type, int intval, double realval, char* strval){
+token inittok(toktype type, int specval, int intval, double realval, char* strval){
   token t = malloc(sizeof(struct tokenstruct));
   t->type = type;
   t->specval = specval;

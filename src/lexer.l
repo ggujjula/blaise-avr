@@ -1,5 +1,5 @@
 /*
-<desc>
+  lexer.l - Scanner for Unextended Pascal programs
 
   Copyright (C) 2021 <name> 
 
@@ -26,8 +26,8 @@
 #include "token.h"
 %}
 
-%option nounput
-%option noinput
+%option noinput nounput noyywrap
+%option warn nodefault
 
 LETTER    [a-zA-Z]
 DIGIT     [0-9]
@@ -193,8 +193,3 @@ COMMENT ((\{)|(\(\*))([^}*]|(\*[^)]))*((\})|(\*\)))
 {SIGNED_REAL}       {yylval = inittok(TYPE_NUM, SIGNED_REAL, 0, atof(yytext), yytext); /*debugtoken(yylval);*/ return SIGNED_REAL;}
 {SIGNED_INT}        {yylval = inittok(TYPE_NUM, SIGNED_INT, atoi(yytext), 0.0, yytext); /*debugtoken(yylval);*/ return SIGNED_INT;}
 [\x00-\xFF]         {printf("Syntax error: invalid character %d %c\n", yytext[0], yytext[0]); return 1;}
-%%
-
-int yywrap() {
-  return 1;
-}

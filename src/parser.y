@@ -1,5 +1,5 @@
 /*
-<desc>
+  parser.y - Parser for Unextended Pascal programs
 
   Copyright (C) 2021 <name> 
 
@@ -36,7 +36,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "lexer.h"
-#include "symtab.h"
 
 static symtab top_symtab;
 static token parsetree;
