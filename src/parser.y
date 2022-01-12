@@ -127,13 +127,13 @@ block:
     if($5)
       token_append(tokholder, $5);
     $$ = tokholder->next;
-    free(tokholder);
+    tfree(tokholder);
   }
 ;
 labeldeclarationpart:
   LABEL addlabel SEMICOLON {
-    free($1);
-    free($3);
+    tfree($1);
+    tfree($3);
     $$ = $2;
   }
 | {$$ = NULL;}
@@ -146,7 +146,7 @@ addlabel:
   }
 | addlabel COMMA label {
     parse_label($3); 
-    free($2);
+    tfree($2);
     token_append($1, $3);
     $$ = $1;
   }
@@ -154,7 +154,7 @@ addlabel:
 
 constantdefinitionpart:
   CONST constantdefinition {
-    free($1);
+    tfree($1);
     $$ = $2;
   }
 | {$$ = NULL;}
@@ -163,15 +163,15 @@ constantdefinitionpart:
 constantdefinition:
   ID EQ constant SEMICOLON {
     parse_constantdefinition($1, $3);
-    free($2);
-    free($4);
+    tfree($2);
+    tfree($4);
     $1->leaf = $3;
     $$ = $1;
   }
 | constantdefinition ID EQ constant SEMICOLON {
     parse_constantdefinition($2, $4);
-    free($3);
-    free($5);
+    tfree($3);
+    tfree($5);
     token_append($1, $2);
     $$ = $1;
   }
@@ -196,7 +196,7 @@ constantid:
 
 typedefinitionpart:
   TYPE typedefinition {
-    free($1);
+    tfree($1);
     $$ = NULL;
   }
 | {$$ = NULL;}
@@ -205,14 +205,14 @@ typedefinitionpart:
 typedefinition:
   ID EQ typedenoter SEMICOLON {
     parse_typedefinition($1, $3);
-    free($2);
-    free($4);
+    tfree($2);
+    tfree($4);
     $$ = NULL;
   }
 | typedefinition ID EQ typedenoter SEMICOLON {
     parse_typedefinition($2, $4);
-    free($3);
-    free($5);
+    tfree($3);
+    tfree($5);
     $$ = NULL;
   }
 ;
@@ -269,8 +269,8 @@ realtypeid:
 
 enumeratedtype:
   LPAREN idlist RPAREN{
-    free($1);
-    free($3);
+    tfree($1);
+    tfree($3);
     $$ = parse_enumeratedtype($2);
   }
 ;
@@ -279,7 +279,7 @@ idlist:
   ID
 | idlist COMMA ID {
     token_append($1, $3);
-    free($2);
+    tfree($2);
     $$ = $1;
   }
 ;
@@ -307,10 +307,10 @@ unpackedstructuredtype:
 
 arraytype:
   ARRAY LBRACKET indextype RBRACKET OF componenttype {
-    free($1);
-    free($2);
-    free($4);
-    free($5);
+    tfree($1);
+    tfree($2);
+    tfree($4);
+    tfree($5);
     $$ = parse_arraytype($3, $6);
   }
 ;
@@ -318,7 +318,7 @@ arraytype:
 indextype:
   ordinaltype
 | indextype COMMA ordinaltype {
-    free($2);
+    tfree($2);
     token index = $1;
     token end = NULL;
     while(index){
@@ -336,31 +336,31 @@ componenttype:
 
 recordtype:
   RECORD fieldlist END {
-    free($1);
-    free($1);
+    tfree($1);
+    tfree($1);
     $$ = $2;
   }
 ;
 
 fieldlist:
   fixedpart SEMICOLON variantpart SEMICOLON {
-    free($2);
-    free($4);
+    tfree($2);
+    tfree($4);
     $$ = parse_fieldlist($1, $3);
   }
 | fixedpart SEMICOLON variantpart {
-    free($2);
+    tfree($2);
     $$ = parse_fieldlist($1, $3);
   }
 | fixedpart SEMICOLON {
-    free($2);
+    tfree($2);
     $$ = parse_fieldlist($1, NULL);
   }
 | fixedpart {
     $$ = parse_fieldlist($1, NULL);
   }
 | variantpart SEMICOLON {
-    free($2);
+    tfree($2);
     $$ = parse_fieldlist(NULL, $1);
   }
 | variantpart {
@@ -372,7 +372,7 @@ fieldlist:
 fixedpart:
   recordsection
 | recordsection SEMICOLON recordsection {
-    free($2);
+    tfree($2);
     token_append($1, $3);
     $$ = $1; 
   }
@@ -380,7 +380,7 @@ fixedpart:
 
 recordsection:
   idlist COLON typedenoter {
-    free($2);
+    tfree($2);
     $$ = parse_recordsection($1, $3);
   }
 ;
@@ -391,8 +391,8 @@ fieldid:
 
 variantpart:
   CASE variantselector OF variantext {
-    free($1);
-    free($3);
+    tfree($1);
+    tfree($3);
     $2->leaf = $4;
     $$ = $2;
   }
@@ -401,7 +401,7 @@ variantpart:
 variantext:
   variant
 | variantext SEMICOLON variant {
-    free($2);
+    tfree($2);
     token index = $1;
     token end = NULL;
     while(index){
@@ -415,9 +415,9 @@ variantext:
 
 variantselector:
   tagfield COLON tagtype {
-    free($2);
+    tfree($2);
     $1->type_sym = $3->entry;
-    free($3);
+    tfree($3);
     $$ = $1;
   }
 ;
@@ -428,9 +428,9 @@ tagfield:
 
 variant:
   caseconstantlist COLON LPAREN fieldlist RPAREN {
-    free($2);
-    free($3);
-    free($5);
+    tfree($2);
+    tfree($3);
+    tfree($5);
     $1->leaf = $4;
     $$ = $1;
   }
@@ -443,7 +443,7 @@ tagtype:
 caseconstantlist:
   caseconstant
 | caseconstantlist COMMA caseconstant {
-    free($2);
+    tfree($2);
     token index = $1;
     token end = NULL;
     while(index){
@@ -461,7 +461,7 @@ caseconstant:
 
 settype:
   SET OF basetype{
-    free($1);
+    tfree($1);
     $$ = parse_settype($3, $2);
   }
 ;
@@ -472,8 +472,8 @@ basetype:
 
 filetype:
   PASFILE OF componenttype {
-    free($1);
-    free($2);
+    tfree($1);
+    tfree($2);
     $$ = $3;
   }
 ;
@@ -489,7 +489,7 @@ pointertype:
 
 newpointertype:
   POINT domaintype {
-    free($1);
+    tfree($1);
     $$ = $2;
   }
 ;
@@ -807,8 +807,8 @@ statementsequence:
 compoundstatement:
   PASBEGIN END {
     $$ = NULL;
-    free($1);
-    free($2);
+    tfree($1);
+    tfree($2);
   }
 ;
 /*
@@ -946,8 +946,8 @@ program:
     //printf("%p\n", $3);
     //debugtokentree($3);
     $1->leaf = $3;
-    free($2);
-    free($4);
+    tfree($2);
+    tfree($4);
     parsetree = $1;
   }
 ;
@@ -958,8 +958,8 @@ programheading:
   }
 | PROG ID LPAREN programparameterlist RPAREN {
     $$ = parse_programheading($1, $2, $4);
-    free($3);
-    free($5);
+    tfree($3);
+    tfree($5);
   }
 ;
 
@@ -991,7 +991,7 @@ token parse_enumeratedtype(token idlist){
     entry->intval = i;
     symtab_add(top_symtab, entry);
     token temp = idlist->next;
-    free(idlist);
+    tfree(idlist);
     idlist = temp;
   }
   token retval = talloc();
@@ -1009,13 +1009,13 @@ token parse_subrangetype(token filltok, token lowbound, token highbound){
   entry->size = highbound->intval - lowbound->intval;
   cleartok(filltok);
   filltok->entry = entry;
-  free(lowbound);
-  free(highbound);
+  tfree(lowbound);
+  tfree(highbound);
   return filltok;
 }
 
 token parse_newstructuredtype(token typetok, token packed){
-  free(packed);
+  tfree(packed);
   return typetok;
 }
 
@@ -1065,7 +1065,7 @@ token parse_recordsection(token idlist, token typedenoter){
     arglistend->size = typedenoter->entry->size;
     arglistend->type = typedenoter->entry;
     token tmp = idlist->next;
-    free(idlist);
+    tfree(idlist);
     idlist = tmp;
   }
   cleartok(typedenoter);
@@ -1107,7 +1107,7 @@ token parse_constant(token sign, token constant){
     constant->realval *= -1;
     constant->entry = NULL;
   }
-  free(sign);
+  tfree(sign);
   return constant;
 }
 

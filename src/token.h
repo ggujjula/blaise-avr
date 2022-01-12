@@ -50,6 +50,7 @@ typedef struct tokenstruct* token;
 token talloc();
 token cleartok(token t);
 token inittok(toktype type, int specval, int intval, double realval, char* strval);
+void tfree(token t);
 void debugtoken(token tok);
 void debugtokentree(token tok);
 void tokentest(token tok);

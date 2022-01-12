@@ -24,29 +24,28 @@ token talloc(){
 }
 
 token cleartok(token t){
-  t->type = TYPE_CLEAR;
-  t->specval = -1;
-  t->intval = 0;
-  t->realval = 0.0;
-  t->strval = NULL;
-  t->next = NULL;
-  t->leaf = NULL;
+  memset(t, 0, sizeof(struct tokenstruct));
+  t->specval = -1; //tokentype of 0 is YYEOF
   return t;
 }
 
 token inittok(toktype type, int specval, int intval, double realval, char* strval){
-  token t = malloc(sizeof(struct tokenstruct));
+  token t = talloc();
   t->type = type;
   t->specval = specval;
   t->intval = intval;
   t->realval = realval;
   size_t strsize = strlen(strval);
-  //TODO: Take care of mem leaks from this malloc
   t->strval = malloc(strsize * sizeof(char));
   strncpy(t->strval, strval, strsize);
-  t->next = NULL;
-  t->leaf = NULL;
   return t;
+}
+
+void tfree(token t){
+  if(t->strval){
+    free(t->strval);
+  }
+  free(t);
 }
 
 void debugtokentree(token tok){
