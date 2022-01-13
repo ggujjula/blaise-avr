@@ -35,9 +35,8 @@ token inittok(toktype type, int specval, int intval, double realval, char* strva
   t->specval = specval;
   t->intval = intval;
   t->realval = realval;
-  size_t strsize = strlen(strval);
-  t->strval = malloc(strsize * sizeof(char));
-  strncpy(t->strval, strval, strsize);
+  t->strval = malloc(strlen(strval) + 1);
+  strcpy(t->strval, strval);
   return t;
 }
 
@@ -102,8 +101,8 @@ void debugtoken(token tok){
   };
   union debugunion dbu;
   dbu.input = tok->realval;
-  printf("\n-----DEBUG TOKEN-----\n");
-  printf("Address: %p\n", tok);
+  printf("\n--------DEBUG TOKEN--------\n");
+  printf("%12s%p\n", "Address: ", tok);
   if(!tok ||
       tok->specval < PLUS ||
       tok->specval > STR ||
@@ -112,17 +111,17 @@ void debugtoken(token tok){
     printf("INVALID\n");
   }
   else{
-    printf("Type: %x\n", tok->type);
-    printf("specval: %s(%d)\n", debugtable[(int)(tok->specval) - debugtableoffset], tok->specval);
-    printf("intval: %x\n", tok->intval);
-    printf("realval: %lx\n", dbu.output);
-    printf("strval: %s\n", tok->strval);
-    printf("entry: %p\n", tok->entry);
-    printf("type_sym: %p\n", tok->type_sym);
-    printf("leaf: %p\n", tok->leaf);
-    printf("next: %p\n", tok->next);
+    printf("%12s%x\n", "Type: ", tok->type);
+    printf("%12s%s(%d)\n", "specval: ", debugtable[(int)(tok->specval) - debugtableoffset], tok->specval);
+    printf("%12s%x\n", "intval: ", tok->intval);
+    printf("%12s%lx\n", "realval: ", dbu.output);
+    printf("%12s%s\n", "strval: ", tok->strval);
+    printf("%12s%p\n", "entry: ", tok->entry);
+    printf("%12s%p\n", "type_sym: ", tok->type_sym);
+    printf("%12s%p\n", "leaf: ", tok->leaf);
+    printf("%12s%p\n", "next: ", tok->next);
   }
-    printf("-----END DEBUG TOKEN-----\n");
+    printf("------END DEBUG TOKEN------\n");
 }
 
 void token_append(token tok1, token tok2){

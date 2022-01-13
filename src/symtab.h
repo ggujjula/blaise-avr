@@ -20,7 +20,7 @@
 #define BLAISE_AVR_SYMTAB_H
 
 typedef enum entrytype{
-  INVALID_ENTRY,
+  INVALID_ENTRY = 0,
   LABEL_ENTRY,
   ID_ENTRY,
   CONST_ENTRY,

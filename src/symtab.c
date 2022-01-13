@@ -4,25 +4,16 @@
 #include <string.h>
 
 symtab symtab_alloc(void){
-  symtab retval = malloc(sizeof(symboltable));
-  retval->entrylist = NULL;
-  retval->prev = NULL;
+  symtab retval = calloc(1, sizeof(symboltable));
   return retval;
 }
 
 symentry symentry_alloc(void){
-  symentry retval = malloc(sizeof(tableentry));
-  retval->name = NULL;
-  retval->etype = INVALID_ENTRY;
+  symentry retval = calloc(1, sizeof(tableentry));
   retval->size = -1;
   retval->offset = -1;
-  retval->intval = 0;
-  retval->realval = 0.0;
-  retval->strval = NULL;
   retval->low = -1;
   retval->high = -1;
-  retval->type = NULL;
-  retval->next = NULL;
   return retval;
 }
 
@@ -36,6 +27,7 @@ symtab symtab_push(symtab parent){
 symtab symtab_pop(symtab child){
   printf("symtab pop\n");
   symtab parent = child->prev;
+  //TODO: symbol entries of child are probably leaking
   free(child);
   return parent;
 }

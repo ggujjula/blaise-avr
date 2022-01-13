@@ -134,7 +134,7 @@ labeldeclarationpart:
   LABEL addlabel SEMICOLON {
     tfree($1);
     tfree($3);
-    $$ = $2;
+    $$ = NULL;
   }
 | {$$ = NULL;}
 ;
@@ -142,20 +142,22 @@ labeldeclarationpart:
 addlabel:
   label {
     parse_label($1);
-    $$ = $1;
+    tfree($1);
+    $$ = NULL;
   }
 | addlabel COMMA label {
     parse_label($3); 
+    tfree($1);
     tfree($2);
-    token_append($1, $3);
-    $$ = $1;
+    tfree($3);
+    $$ = NULL;
   }
 ;
 
 constantdefinitionpart:
   CONST constantdefinition {
     tfree($1);
-    $$ = $2;
+    $$ = NULL;
   }
 | {$$ = NULL;}
 ;
@@ -163,17 +165,21 @@ constantdefinitionpart:
 constantdefinition:
   ID EQ constant SEMICOLON {
     parse_constantdefinition($1, $3);
+    tfree($1);
     tfree($2);
+    tfree($3);
     tfree($4);
-    $1->leaf = $3;
-    $$ = $1;
+    $$ = NULL;
   }
 | constantdefinition ID EQ constant SEMICOLON {
     parse_constantdefinition($2, $4);
+    tfree($2);
     tfree($3);
+    printf("here\n");
+    debugtoken($4);
+    tfree($4);
     tfree($5);
-    token_append($1, $2);
-    $$ = $1;
+    $$ = NULL;
   }
 ;
 
@@ -183,8 +189,8 @@ sign:
 ;
 
 constant:
-  sign number {$$ = parse_constant($1, $2);}
-| sign constantid {$$ = parse_constant($1, $2);}
+  sign number {$$ = parse_constant($1, $2); tfree($1);}
+| sign constantid {$$ = parse_constant($1, $2); tfree($1);}
 | number
 | constantid
 | STR
@@ -1107,20 +1113,23 @@ token parse_constant(token sign, token constant){
     constant->realval *= -1;
     constant->entry = NULL;
   }
-  tfree(sign);
   return constant;
 }
 
 void parse_constantdefinition(token id, token constant){
   printf("Adding constant %s to symtab\n", id->strval);
   symentry constentry = symentry_alloc();
-  constentry->name = id->strval;
+  constentry->name = malloc(strlen(id->strval) + 1);
+  strcpy(constentry->name, id->strval);
   constentry->etype = CONST_ENTRY;
   constentry->intval = constant->intval;
   constentry->realval = constant->realval;
+  constentry->strval = malloc(strlen(constant->strval) + 1);
+  strcpy(constentry->strval, constant->strval);
   constentry->strval = constant->strval;
   constentry->type = constant->type_sym;
   symtab_add(top_symtab, constentry);
+  printf("%p\n%p\n", id, constant);
 }
 
 token lookup(token id, entrytype t){
@@ -1136,7 +1145,8 @@ token lookup(token id, entrytype t){
   }
   id->intval = entry->intval;
   id->realval = entry->realval;
-  id->strval = entry->strval;
+  id->strval = malloc(strlen(entry->strval) + 1);
+  strcpy(id->strval, entry->strval);
   id->entry = entry;
   id->type_sym = entry->type;
   return id;
@@ -1157,6 +1167,7 @@ void parse_label(token label){
   symentry label_entry = symentry_alloc();
   label_entry->etype = LABEL_ENTRY;
   label_entry->name = label_name;
+  printf("label_entry name:%s\n", label_entry->name);
   symtab_add(top_symtab, label_entry);
 }
 
@@ -1174,7 +1185,7 @@ int yyerror(const char * err){
 }
 
 int main(void){
-  yydebug = 0;
+  yydebug = 1;
   init_symtab(); 
   init_parsetree();
   if(!yyparse()){
