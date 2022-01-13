@@ -127,14 +127,14 @@ block:
     if($5)
       token_append(tokholder, $5);
     $$ = tokholder->next;
-    free(tokholder);
+    tfree(tokholder);
   }
 ;
 labeldeclarationpart:
   LABEL addlabel SEMICOLON {
-    free($1);
-    free($3);
-    $$ = $2;
+    tfree($1);
+    tfree($3);
+    $$ = NULL;
   }
 | {$$ = NULL;}
 ;
@@ -142,20 +142,22 @@ labeldeclarationpart:
 addlabel:
   label {
     parse_label($1);
-    $$ = $1;
+    tfree($1);
+    $$ = NULL;
   }
 | addlabel COMMA label {
     parse_label($3); 
-    free($2);
-    token_append($1, $3);
-    $$ = $1;
+    tfree($1);
+    tfree($2);
+    tfree($3);
+    $$ = NULL;
   }
 ;
 
 constantdefinitionpart:
   CONST constantdefinition {
-    free($1);
-    $$ = $2;
+    tfree($1);
+    $$ = NULL;
   }
 | {$$ = NULL;}
 ;
@@ -163,17 +165,21 @@ constantdefinitionpart:
 constantdefinition:
   ID EQ constant SEMICOLON {
     parse_constantdefinition($1, $3);
-    free($2);
-    free($4);
-    $1->leaf = $3;
-    $$ = $1;
+    tfree($1);
+    tfree($2);
+    tfree($3);
+    tfree($4);
+    $$ = NULL;
   }
 | constantdefinition ID EQ constant SEMICOLON {
     parse_constantdefinition($2, $4);
-    free($3);
-    free($5);
-    token_append($1, $2);
-    $$ = $1;
+    tfree($2);
+    tfree($3);
+    printf("here\n");
+    debugtoken($4);
+    tfree($4);
+    tfree($5);
+    $$ = NULL;
   }
 ;
 
@@ -183,8 +189,8 @@ sign:
 ;
 
 constant:
-  sign number {$$ = parse_constant($1, $2);}
-| sign constantid {$$ = parse_constant($1, $2);}
+  sign number {$$ = parse_constant($1, $2); tfree($1);}
+| sign constantid {$$ = parse_constant($1, $2); tfree($1);}
 | number
 | constantid
 | STR
@@ -196,7 +202,7 @@ constantid:
 
 typedefinitionpart:
   TYPE typedefinition {
-    free($1);
+    tfree($1);
     $$ = NULL;
   }
 | {$$ = NULL;}
@@ -205,14 +211,14 @@ typedefinitionpart:
 typedefinition:
   ID EQ typedenoter SEMICOLON {
     parse_typedefinition($1, $3);
-    free($2);
-    free($4);
+    tfree($2);
+    tfree($4);
     $$ = NULL;
   }
 | typedefinition ID EQ typedenoter SEMICOLON {
     parse_typedefinition($2, $4);
-    free($3);
-    free($5);
+    tfree($3);
+    tfree($5);
     $$ = NULL;
   }
 ;
@@ -269,8 +275,8 @@ realtypeid:
 
 enumeratedtype:
   LPAREN idlist RPAREN{
-    free($1);
-    free($3);
+    tfree($1);
+    tfree($3);
     $$ = parse_enumeratedtype($2);
   }
 ;
@@ -279,7 +285,7 @@ idlist:
   ID
 | idlist COMMA ID {
     token_append($1, $3);
-    free($2);
+    tfree($2);
     $$ = $1;
   }
 ;
@@ -307,10 +313,10 @@ unpackedstructuredtype:
 
 arraytype:
   ARRAY LBRACKET indextype RBRACKET OF componenttype {
-    free($1);
-    free($2);
-    free($4);
-    free($5);
+    tfree($1);
+    tfree($2);
+    tfree($4);
+    tfree($5);
     $$ = parse_arraytype($3, $6);
   }
 ;
@@ -318,7 +324,7 @@ arraytype:
 indextype:
   ordinaltype
 | indextype COMMA ordinaltype {
-    free($2);
+    tfree($2);
     token index = $1;
     token end = NULL;
     while(index){
@@ -336,31 +342,31 @@ componenttype:
 
 recordtype:
   RECORD fieldlist END {
-    free($1);
-    free($1);
+    tfree($1);
+    tfree($1);
     $$ = $2;
   }
 ;
 
 fieldlist:
   fixedpart SEMICOLON variantpart SEMICOLON {
-    free($2);
-    free($4);
+    tfree($2);
+    tfree($4);
     $$ = parse_fieldlist($1, $3);
   }
 | fixedpart SEMICOLON variantpart {
-    free($2);
+    tfree($2);
     $$ = parse_fieldlist($1, $3);
   }
 | fixedpart SEMICOLON {
-    free($2);
+    tfree($2);
     $$ = parse_fieldlist($1, NULL);
   }
 | fixedpart {
     $$ = parse_fieldlist($1, NULL);
   }
 | variantpart SEMICOLON {
-    free($2);
+    tfree($2);
     $$ = parse_fieldlist(NULL, $1);
   }
 | variantpart {
@@ -372,7 +378,7 @@ fieldlist:
 fixedpart:
   recordsection
 | recordsection SEMICOLON recordsection {
-    free($2);
+    tfree($2);
     token_append($1, $3);
     $$ = $1; 
   }
@@ -380,7 +386,7 @@ fixedpart:
 
 recordsection:
   idlist COLON typedenoter {
-    free($2);
+    tfree($2);
     $$ = parse_recordsection($1, $3);
   }
 ;
@@ -391,8 +397,8 @@ fieldid:
 
 variantpart:
   CASE variantselector OF variantext {
-    free($1);
-    free($3);
+    tfree($1);
+    tfree($3);
     $2->leaf = $4;
     $$ = $2;
   }
@@ -401,7 +407,7 @@ variantpart:
 variantext:
   variant
 | variantext SEMICOLON variant {
-    free($2);
+    tfree($2);
     token index = $1;
     token end = NULL;
     while(index){
@@ -415,9 +421,9 @@ variantext:
 
 variantselector:
   tagfield COLON tagtype {
-    free($2);
+    tfree($2);
     $1->type_sym = $3->entry;
-    free($3);
+    tfree($3);
     $$ = $1;
   }
 ;
@@ -428,9 +434,9 @@ tagfield:
 
 variant:
   caseconstantlist COLON LPAREN fieldlist RPAREN {
-    free($2);
-    free($3);
-    free($5);
+    tfree($2);
+    tfree($3);
+    tfree($5);
     $1->leaf = $4;
     $$ = $1;
   }
@@ -443,7 +449,7 @@ tagtype:
 caseconstantlist:
   caseconstant
 | caseconstantlist COMMA caseconstant {
-    free($2);
+    tfree($2);
     token index = $1;
     token end = NULL;
     while(index){
@@ -461,7 +467,7 @@ caseconstant:
 
 settype:
   SET OF basetype{
-    free($1);
+    tfree($1);
     $$ = parse_settype($3, $2);
   }
 ;
@@ -472,8 +478,8 @@ basetype:
 
 filetype:
   PASFILE OF componenttype {
-    free($1);
-    free($2);
+    tfree($1);
+    tfree($2);
     $$ = $3;
   }
 ;
@@ -489,7 +495,7 @@ pointertype:
 
 newpointertype:
   POINT domaintype {
-    free($1);
+    tfree($1);
     $$ = $2;
   }
 ;
@@ -807,8 +813,8 @@ statementsequence:
 compoundstatement:
   PASBEGIN END {
     $$ = NULL;
-    free($1);
-    free($2);
+    tfree($1);
+    tfree($2);
   }
 ;
 /*
@@ -946,8 +952,8 @@ program:
     //printf("%p\n", $3);
     //debugtokentree($3);
     $1->leaf = $3;
-    free($2);
-    free($4);
+    tfree($2);
+    tfree($4);
     parsetree = $1;
   }
 ;
@@ -958,8 +964,8 @@ programheading:
   }
 | PROG ID LPAREN programparameterlist RPAREN {
     $$ = parse_programheading($1, $2, $4);
-    free($3);
-    free($5);
+    tfree($3);
+    tfree($5);
   }
 ;
 
@@ -991,7 +997,7 @@ token parse_enumeratedtype(token idlist){
     entry->intval = i;
     symtab_add(top_symtab, entry);
     token temp = idlist->next;
-    free(idlist);
+    tfree(idlist);
     idlist = temp;
   }
   token retval = talloc();
@@ -1009,13 +1015,13 @@ token parse_subrangetype(token filltok, token lowbound, token highbound){
   entry->size = highbound->intval - lowbound->intval;
   cleartok(filltok);
   filltok->entry = entry;
-  free(lowbound);
-  free(highbound);
+  tfree(lowbound);
+  tfree(highbound);
   return filltok;
 }
 
 token parse_newstructuredtype(token typetok, token packed){
-  free(packed);
+  tfree(packed);
   return typetok;
 }
 
@@ -1065,7 +1071,7 @@ token parse_recordsection(token idlist, token typedenoter){
     arglistend->size = typedenoter->entry->size;
     arglistend->type = typedenoter->entry;
     token tmp = idlist->next;
-    free(idlist);
+    tfree(idlist);
     idlist = tmp;
   }
   cleartok(typedenoter);
@@ -1107,20 +1113,23 @@ token parse_constant(token sign, token constant){
     constant->realval *= -1;
     constant->entry = NULL;
   }
-  free(sign);
   return constant;
 }
 
 void parse_constantdefinition(token id, token constant){
   printf("Adding constant %s to symtab\n", id->strval);
   symentry constentry = symentry_alloc();
-  constentry->name = id->strval;
+  constentry->name = malloc(strlen(id->strval) + 1);
+  strcpy(constentry->name, id->strval);
   constentry->etype = CONST_ENTRY;
   constentry->intval = constant->intval;
   constentry->realval = constant->realval;
+  constentry->strval = malloc(strlen(constant->strval) + 1);
+  strcpy(constentry->strval, constant->strval);
   constentry->strval = constant->strval;
   constentry->type = constant->type_sym;
   symtab_add(top_symtab, constentry);
+  printf("%p\n%p\n", id, constant);
 }
 
 token lookup(token id, entrytype t){
@@ -1136,7 +1145,8 @@ token lookup(token id, entrytype t){
   }
   id->intval = entry->intval;
   id->realval = entry->realval;
-  id->strval = entry->strval;
+  id->strval = malloc(strlen(entry->strval) + 1);
+  strcpy(id->strval, entry->strval);
   id->entry = entry;
   id->type_sym = entry->type;
   return id;
@@ -1157,6 +1167,7 @@ void parse_label(token label){
   symentry label_entry = symentry_alloc();
   label_entry->etype = LABEL_ENTRY;
   label_entry->name = label_name;
+  printf("label_entry name:%s\n", label_entry->name);
   symtab_add(top_symtab, label_entry);
 }
 
@@ -1174,7 +1185,7 @@ int yyerror(const char * err){
 }
 
 int main(void){
-  yydebug = 0;
+  yydebug = 1;
   init_symtab(); 
   init_parsetree();
   if(!yyparse()){
