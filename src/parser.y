@@ -38,10 +38,13 @@
 #include <string.h>
 #include "lexer.h"
 
+#define MAXINT 2147483647 //2^31-1 (integer is 32-bits)
+#define MAXCHAR 255 //2^8-1 (char is 8-bit unsigned)
+
 static symtab top_symtab;
 static token parsetree;
 
-token lookup(token id, entrytype t);
+token lookup(token id);//, entrytype t);
 token parse_programheading(token prog, token id, token paramlist);
 void parse_label(token label);
 token parse_constant(token sign, token constant);
@@ -116,6 +119,7 @@ block:
   {top_symtab = symtab_push(top_symtab);}
   labeldeclarationpart constantdefinitionpart typedefinitionpart
   statementpart {
+    debugsymtabtree(top_symtab);
     top_symtab = symtab_pop(top_symtab);
     token tokholder = talloc();
     if($2)
@@ -175,8 +179,6 @@ constantdefinition:
     parse_constantdefinition($2, $4);
     tfree($2);
     tfree($3);
-    printf("here\n");
-    debugtoken($4);
     tfree($4);
     tfree($5);
     $$ = NULL;
@@ -197,7 +199,7 @@ constant:
 ;
 
 constantid:
-  ID {$$ = lookup($1, CONST_ENTRY);}
+  ID {$$ = lookup($1);}//, CONST_ENTRY);}
 ;
 
 typedefinitionpart:
@@ -247,7 +249,7 @@ pointertypeid:
 ;
 
 typeid:
-  ID {$$ = lookup($1, TYPE_ENTRY);}
+  ID {$$ = lookup($1);}//, INVALID_ENTRY);}
 ;
 
 simpletype:
@@ -275,9 +277,9 @@ realtypeid:
 
 enumeratedtype:
   LPAREN idlist RPAREN{
+    $$ = parse_enumeratedtype($2);
     tfree($1);
     tfree($3);
-    $$ = parse_enumeratedtype($2);
   }
 ;
 
@@ -443,7 +445,7 @@ variant:
 ;
 
 tagtype:
-  ordinaltypeid {$$ = lookup($1, TYPE_ENTRY);}
+  ordinaltypeid {$$ = lookup($1);}//, INVALID_ENTRY);}
 ;
 
 caseconstantlist:
@@ -991,10 +993,15 @@ token parse_pointertype(token basetype){
 token parse_enumeratedtype(token idlist){
   int i = 0;
   for(; idlist; i++){
+    symentry backing = symentry_alloc();
     symentry entry = symentry_alloc();
-    entry->name = idlist->strval;
-    entry->etype = CONST_ENTRY;
-    entry->intval = i;
+    entry->name = malloc(strlen(idlist->strval) + 1);
+    strcpy(entry->name, idlist->strval);
+    entry->etype = ID_ENTRY;
+    entry->type = backing;
+    backing->etype = CONST_ENTRY;
+    backing->intval = i;
+    backing->type = symtab_get(top_symtab, "integer");
     symtab_add(top_symtab, entry);
     token temp = idlist->next;
     tfree(idlist);
@@ -1005,14 +1012,18 @@ token parse_enumeratedtype(token idlist){
   enumentry->etype = ENUM_ENTRY;
   enumentry->size = i;
   retval->entry = enumentry;
+  //TODO: Consider adding enumentry->next = <the first CONST> and link the CONSTs with ->next
   return retval; 
 }
 
 token parse_subrangetype(token filltok, token lowbound, token highbound){
+  //TODO: Type checking of constants to ensure they are ordinal
   symentry entry = symentry_alloc();
   entry->etype = SUBRANGE_ENTRY;
-  entry->offset = lowbound->intval;
-  entry->size = highbound->intval - lowbound->intval;
+  entry->low = lowbound->intval;
+  debugtoken(highbound);
+  entry->high = highbound->intval;
+  entry->size = symtab_get(top_symtab, "integer")->type->size;
   cleartok(filltok);
   filltok->entry = entry;
   tfree(lowbound);
@@ -1021,7 +1032,9 @@ token parse_subrangetype(token filltok, token lowbound, token highbound){
 }
 
 token parse_newstructuredtype(token typetok, token packed){
-  tfree(packed);
+  if(packed){
+    tfree(packed);
+  }
   return typetok;
 }
 
@@ -1031,7 +1044,7 @@ token parse_arraytype(token indicies, token typetok){
     //Process typtok
     symentry entry = symentry_alloc();
     entry->etype = ARRAY_ENTRY;
-    entry->size = (indicies->entry->high - indicies->entry->low + 1) * typetok->entry->size;
+    entry->size = (indicies->entry->high - indicies->entry->low + 1) * typetok->type_sym->size;
     entry->low = indicies->entry->low;
     entry->high = indicies->entry->high;
     entry->type = typetok->entry;
@@ -1093,7 +1106,9 @@ token parse_settype(token basetype, token fill){
 
 void parse_typedefinition(token id, token def){
   symentry typeentry = symentry_alloc();
-  typeentry->name = id->strval;
+  typeentry->etype = ID_ENTRY;
+  typeentry->name = malloc(strlen(id->strval) + 1);
+  strcpy(typeentry->name, id->strval);
   typeentry->type = def->entry;
   symtab_add(top_symtab, typeentry);
 }
@@ -1121,32 +1136,30 @@ void parse_constantdefinition(token id, token constant){
   symentry constentry = symentry_alloc();
   constentry->name = malloc(strlen(id->strval) + 1);
   strcpy(constentry->name, id->strval);
-  constentry->etype = CONST_ENTRY;
-  constentry->intval = constant->intval;
-  constentry->realval = constant->realval;
-  constentry->strval = malloc(strlen(constant->strval) + 1);
-  strcpy(constentry->strval, constant->strval);
-  constentry->strval = constant->strval;
+  constentry->etype = ID_ENTRY;
   constentry->type = constant->type_sym;
   symtab_add(top_symtab, constentry);
-  printf("%p\n%p\n", id, constant);
 }
 
-token lookup(token id, entrytype t){
+token lookup(token id){//, entrytype t){
   printf("id is %s\n", id->strval);
   symentry entry = symtab_get(top_symtab, id->strval);
   if(!entry){
     printf("No entry %s declared\n", id->strval);
     exit(1);
   }
+  /*
   if(entry->etype != t){
     printf("%s is not the desired type of entry %d\n", id->strval, t);
     exit(1);
   }
+  */
   id->intval = entry->intval;
   id->realval = entry->realval;
-  id->strval = malloc(strlen(entry->strval) + 1);
-  strcpy(id->strval, entry->strval);
+  if(entry->strval){
+    id->strval = malloc(strlen(entry->strval) + 1);
+    strcpy(id->strval, entry->strval);
+  }
   id->entry = entry;
   id->type_sym = entry->type;
   return id;
@@ -1160,14 +1173,15 @@ void parse_label(token label){
   char *label_name =  malloc(5 * sizeof(char));//Max possible string is 9999\0
   snprintf(label_name, 5 * sizeof(char), "%d", label->intval);
   //TODO: This prob doesn't follow scope rules
+  printf("label_name:%s\n", label_name);
   if(symtab_get(top_symtab, label_name)){
     printf("Repeated label number: %s\n", label_name);
     exit(1);
   }
   symentry label_entry = symentry_alloc();
-  label_entry->etype = LABEL_ENTRY;
+  //symentry label_backing = symentry_alloc();
+  label_entry->etype = ID_ENTRY;
   label_entry->name = label_name;
-  printf("label_entry name:%s\n", label_entry->name);
   symtab_add(top_symtab, label_entry);
 }
 
@@ -1200,18 +1214,41 @@ void init_symtab(void){
   symentry realentry = symentry_alloc();
   symentry boolentry = symentry_alloc();
   symentry charentry = symentry_alloc();
+  symentry intbacking = symentry_alloc();
+  symentry realbacking = symentry_alloc();
+  symentry boolbacking = symentry_alloc();
+  symentry charbacking = symentry_alloc();
+  intentry->etype = ID_ENTRY;
+  realentry->etype = ID_ENTRY;
+  boolentry->etype = ID_ENTRY;
+  charentry->etype = ID_ENTRY;
+  intentry->type = intbacking;
+  realentry->type = realbacking;
+  boolentry->type = boolbacking;
+  charentry->type = charbacking;
   intentry->name = "integer";
   realentry->name = "real";
   boolentry->name = "Boolean";
   charentry->name = "char";
-  intentry->etype = TYPE_ENTRY;
-  realentry->etype = TYPE_ENTRY;
-  boolentry->etype = TYPE_ENTRY;
-  charentry->etype = TYPE_ENTRY;
+  intbacking->etype = INT_ENTRY;
+  realbacking->etype = REAL_ENTRY;
+  boolbacking->etype = BOOL_ENTRY;
+  charbacking->etype = CHAR_ENTRY;
+  intbacking->size = 4;
+  realbacking->size = 8;
+  boolbacking->size = 1;
+  charbacking->size = 1;
+  intbacking->low = -MAXINT;
+  intbacking->high = MAXINT;
+  boolbacking->low = 0;
+  boolbacking->high = 1;
+  charbacking->low = 0;
+  charbacking->high = MAXCHAR;
   symtab_add(top_symtab, intentry);
   symtab_add(top_symtab, realentry);
   symtab_add(top_symtab, boolentry);
   symtab_add(top_symtab, charentry);
+  debugsymtab(top_symtab);
 }
 
 void init_parsetree(void){

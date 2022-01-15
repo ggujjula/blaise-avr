@@ -99,8 +99,8 @@ void debugtoken(token tok){
     double input;
     unsigned long output;
   };
-  union debugunion dbu;
-  dbu.input = tok->realval;
+  //union debugunion dbu;
+  //dbu.input = tok->realval;
   printf("\n--------DEBUG TOKEN--------\n");
   printf("%12s%p\n", "Address: ", tok);
   if(!tok ||
@@ -111,10 +111,11 @@ void debugtoken(token tok){
     printf("INVALID\n");
   }
   else{
-    printf("%12s%x\n", "Type: ", tok->type);
+    printf("%12s%d\n", "Type: ", tok->type);
     printf("%12s%s(%d)\n", "specval: ", debugtable[(int)(tok->specval) - debugtableoffset], tok->specval);
-    printf("%12s%x\n", "intval: ", tok->intval);
-    printf("%12s%lx\n", "realval: ", dbu.output);
+    printf("%12s%d\n", "intval: ", tok->intval);
+    printf("%12s%f\n", "realval: ", tok->realval);
+    //printf("%12s%lx\n", "realval: ", dbu.output);
     printf("%12s%s\n", "strval: ", tok->strval);
     printf("%12s%p\n", "entry: ", tok->entry);
     printf("%12s%p\n", "type_sym: ", tok->type_sym);

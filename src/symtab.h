@@ -21,20 +21,26 @@
 
 typedef enum entrytype{
   INVALID_ENTRY = 0,
+  ID_ENTRY,     //NOTE: ID_ENTRY is used for label symbols as well, since Pascal defines ids and labels in different
+                // namespaces (IDs must start with a letter, labels must start with a digit)
   LABEL_ENTRY,
-  ID_ENTRY,
   CONST_ENTRY,
-  TYPE_ENTRY,
+  REAL_ENTRY,
+  INT_ENTRY,
+  BOOL_ENTRY,
+  CHAR_ENTRY,
   ENUM_ENTRY,
   SUBRANGE_ENTRY,
   ARRAY_ENTRY,
+  RECORD_ENTRY,
   SET_ENTRY,
+  FILE_ENTRY,
   POINT_ENTRY
 } entrytype;
 
 typedef struct tableentry{
-  char *name;
   entrytype etype;
+  char *name;
   int size;
   int offset;
   //TODO: Use a union for intval, realval, and strval
@@ -62,5 +68,8 @@ symtab symtab_push(symtab parent);
 symtab symtab_pop(symtab child);
 void symtab_add(symtab tab, symentry entry);
 symentry symtab_get(symtab tab, char *name);
+void debugsymentry(symentry entry);
+void debugsymtab(symtab tab);
+void debugsymtabtree(symtab tab);
 
 #endif
