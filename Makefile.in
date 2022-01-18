@@ -56,7 +56,7 @@ CPPFLAGS =
 CFLAGS = -Wall -Werror -g
 LDFLAGS = 
 ALL_CFLAGS = -I$(srcdir) $(CFLAGS)
-BISONFLAGS = -Wall
+BISONFLAGS = -Wall -Dparse.trace
 FLEXFLAGS = -8Cfa
 
 all: lexer parser codegen blaise-avr

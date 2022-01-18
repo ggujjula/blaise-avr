@@ -54,6 +54,7 @@ token parse_enumeratedtype(token idlist);
 token parse_subrangetype(token filltok, token lowbound, token highbound);
 token parse_newstructuredtype(token typetok, token packed);
 token parse_arraytype(token indicies, token typetok);
+token parse_recordtype(token fieldlist);
 token parse_fieldlist(token fixed, token variant);
 token parse_recordsection(token idlist, token typedenoter);
 token parse_settype(token basetype, token fill);
@@ -140,7 +141,7 @@ labeldeclarationpart:
     tfree($3);
     $$ = NULL;
   }
-| {$$ = NULL;}
+| %empty {$$ = NULL;}
 ;
 
 addlabel:
@@ -345,8 +346,9 @@ componenttype:
 recordtype:
   RECORD fieldlist END {
     tfree($1);
-    tfree($1);
-    $$ = $2;
+    tfree($3);
+    parse_recordtype($2);
+    $$ = NULL;
   }
 ;
 
@@ -427,6 +429,10 @@ variantselector:
     $1->type_sym = $3->entry;
     tfree($3);
     $$ = $1;
+  }
+| tagtype {
+    printf("I don't know how to handle this use case. Sorry.\n");
+    exit(1);
   }
 ;
 
@@ -1065,8 +1071,43 @@ token parse_arraytype(token indicies, token typetok){
   return retval;
 }
 
+//Returns the next offset x such that
+//      x >= cur_offset
+//      x % boundary == 0
+int find_next_offset(int cur_offset, int boundary){
+  if(cur_offset % boundary == 0){
+    return cur_offset;
+  }
+  return cur_offset + (boundary - (cur_offset % boundary));
+}
+
+token parse_recordtype(token fieldlist){
+
+}
+
 token parse_fieldlist(token fixed, token variant){
-  return NULL;
+  if(variant){
+    printf("Bye!\n");
+    exit(1);
+  }
+  token recorditer = fixed;
+  symentry prevend = NULL;
+  while(recorditer){
+    symentry entryiter = recorditer->entry;
+    symentry entryend = entryiter
+    while(entryend->next){
+      entryend = entryend->next;
+    }
+    if(prevend){
+      prevend->next = entryiter;
+    }
+    prevend = entryend;
+    recorditer = recorditer->next;
+  }
+  symentry liststart = fixed->entry;
+  cleartok(fixed);
+  fixed->entry = liststart
+  return fixed;
 }
 
 token parse_recordsection(token idlist, token typedenoter){
@@ -1080,9 +1121,10 @@ token parse_recordsection(token idlist, token typedenoter){
     else{
       arglist = arglistend = symentry_alloc();
     }
-    arglistend->name = idlist->strval;
+    arglistend->name = malloc(strlen(idlist->strval) + 1);
+    strcpy(arglistend->name, idlist->strval);
     arglistend->size = typedenoter->entry->size;
-    arglistend->type = typedenoter->entry;
+    arglistend->type = typedenoter->entry; //TODO:type_sym
     token tmp = idlist->next;
     tfree(idlist);
     idlist = tmp;
@@ -1132,7 +1174,7 @@ token parse_constant(token sign, token constant){
 }
 
 void parse_constantdefinition(token id, token constant){
-  printf("Adding constant %s to symtab\n", id->strval);
+  //printf("Adding constant %s to symtab\n", id->strval);
   symentry constentry = symentry_alloc();
   constentry->name = malloc(strlen(id->strval) + 1);
   strcpy(constentry->name, id->strval);
@@ -1142,7 +1184,7 @@ void parse_constantdefinition(token id, token constant){
 }
 
 token lookup(token id){//, entrytype t){
-  printf("id is %s\n", id->strval);
+  //printf("id is %s\n", id->strval);
   symentry entry = symtab_get(top_symtab, id->strval);
   if(!entry){
     printf("No entry %s declared\n", id->strval);
@@ -1173,7 +1215,7 @@ void parse_label(token label){
   char *label_name =  malloc(5 * sizeof(char));//Max possible string is 9999\0
   snprintf(label_name, 5 * sizeof(char), "%d", label->intval);
   //TODO: This prob doesn't follow scope rules
-  printf("label_name:%s\n", label_name);
+  //printf("label_name:%s\n", label_name);
   if(symtab_get(top_symtab, label_name)){
     printf("Repeated label number: %s\n", label_name);
     exit(1);
@@ -1248,6 +1290,26 @@ void init_symtab(void){
   symtab_add(top_symtab, realentry);
   symtab_add(top_symtab, boolentry);
   symtab_add(top_symtab, charentry);
+  symentry boolfalse = symentry_alloc();
+  symentry booltrue = symentry_alloc();
+  symentry boolfalsebacking = symentry_alloc();
+  symentry booltruebacking = symentry_alloc();
+  boolfalse->etype = ID_ENTRY;
+  booltrue->etype = ID_ENTRY;
+  boolfalse->type = boolfalsebacking;
+  booltrue->type = booltruebacking;
+  boolfalse->name = "false";
+  booltrue->name = "true";
+  boolfalsebacking->etype = CONST_ENTRY;
+  booltruebacking->etype = CONST_ENTRY;
+  boolfalsebacking->size = symtab_get(top_symtab, "Boolean")->type->size;
+  booltruebacking->size = symtab_get(top_symtab, "Boolean")->type->size;
+  boolfalsebacking->intval = 0;
+  booltruebacking->intval = 1;
+  boolfalsebacking->type = symtab_get(top_symtab, "Boolean")->type;
+  booltruebacking->type = symtab_get(top_symtab, "Boolean")->type;
+  symtab_add(top_symtab, boolfalse);
+  symtab_add(top_symtab, booltrue);
   debugsymtab(top_symtab);
 }
 
