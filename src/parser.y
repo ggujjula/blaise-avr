@@ -347,8 +347,7 @@ recordtype:
   RECORD fieldlist END {
     tfree($1);
     tfree($3);
-    parse_recordtype($2);
-    $$ = NULL;
+    $$ = parse_recordtype($2);
   }
 ;
 
@@ -1082,7 +1081,26 @@ int find_next_offset(int cur_offset, int boundary){
 }
 
 token parse_recordtype(token fieldlist){
-
+  int offset = 0;
+  symentry fielditer = fieldlist->entry;
+  while(fielditer){
+    //TODO: Using simple byte-boundary regardless of field size.
+    //May have to be changed later.
+    int next_offset = find_next_offset(offset, 8);
+    //printf("name:%s\n", fielditer->name);
+    //printf("size:%d\n", fielditer->size);
+    //printf("offset:%d\n", next_offset);
+    fielditer->offset = next_offset;
+    offset = next_offset + fielditer->size;
+    fielditer = fielditer->next;
+  }
+  token retval = talloc();
+  symentry recordsym = symentry_alloc();
+  recordsym->etype = RECORD_ENTRY;
+  recordsym->size = offset;
+  recordsym->type = fieldlist->entry;
+  retval->entry = recordsym;
+  return retval;
 }
 
 token parse_fieldlist(token fixed, token variant){
@@ -1094,7 +1112,7 @@ token parse_fieldlist(token fixed, token variant){
   symentry prevend = NULL;
   while(recorditer){
     symentry entryiter = recorditer->entry;
-    symentry entryend = entryiter
+    symentry entryend = entryiter;
     while(entryend->next){
       entryend = entryend->next;
     }
@@ -1106,7 +1124,7 @@ token parse_fieldlist(token fixed, token variant){
   }
   symentry liststart = fixed->entry;
   cleartok(fixed);
-  fixed->entry = liststart
+  fixed->entry = liststart;
   return fixed;
 }
 
@@ -1123,8 +1141,8 @@ token parse_recordsection(token idlist, token typedenoter){
     }
     arglistend->name = malloc(strlen(idlist->strval) + 1);
     strcpy(arglistend->name, idlist->strval);
-    arglistend->size = typedenoter->entry->size;
-    arglistend->type = typedenoter->entry; //TODO:type_sym
+    arglistend->size = typedenoter->type_sym->size;
+    arglistend->type = typedenoter->entry; //TODO:type_sym?
     token tmp = idlist->next;
     tfree(idlist);
     idlist = tmp;
@@ -1142,6 +1160,7 @@ token parse_settype(token basetype, token fill){
   cleartok(fill);
   fill->entry = setentry;
   fill->type_sym = setentry->type;
+  debugsymentry(setentry);
   return fill;
 }
 
