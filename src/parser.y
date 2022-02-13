@@ -1016,7 +1016,9 @@ token parse_enumeratedtype(token idlist){
   symentry enumentry = symentry_alloc();
   enumentry->etype = ENUM_ENTRY;
   enumentry->size = i;
-  retval->entry = enumentry;
+  enumentry->low = 0;
+  enumentry->high = i - 1;
+  retval->entry = retval->type_sym = enumentry;
   //TODO: Consider adding enumentry->next = <the first CONST> and link the CONSTs with ->next
   return retval; 
 }
@@ -1155,7 +1157,9 @@ token parse_recordsection(token idlist, token typedenoter){
 token parse_settype(token basetype, token fill){
   symentry setentry = symentry_alloc();
   setentry->etype = SET_ENTRY;
-  setentry->size = basetype->entry->size;
+  //setentry->size = basetype->entry->size;
+  setentry->low = basetype->type_sym->low;
+  setentry->high = basetype->type_sym->high;
   setentry->type = basetype->entry;
   cleartok(fill);
   fill->entry = setentry;
